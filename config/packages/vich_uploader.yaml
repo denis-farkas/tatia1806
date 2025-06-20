@@ -1,0 +1,31 @@
+vich_uploader:
+    db_driver: orm
+    mappings:
+        product:
+            uri_prefix: /build/images/products
+            upload_destination: '%kernel.project_dir%/public/build/images/products'
+            namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
+        professor:
+            uri_prefix: /build/images/professors
+            upload_destination: '%kernel.project_dir%/public/build/images/professors'
+            namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
+        outfit: 
+            uri_prefix: /build/images/outfits
+            upload_destination: '%kernel.project_dir%/public/build/images/outfits'
+            namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
+        event:
+            uri_prefix: /build/images/events
+            upload_destination: '%kernel.project_dir%/public/build/images/events'
+            namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
+        sponsor:
+            uri_prefix: /build/images/sponsors
+            upload_destination: '%kernel.project_dir%/public/build/images/sponsors'
+            namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
+
+
+
+    #mappings:
+    #    products:
+    #        uri_prefix: /images/products
+    #        upload_destination: '%kernel.project_dir%/public/images/products'
+    #        namer: Vich\UploaderBundle\Naming\SmartUniqueNamer

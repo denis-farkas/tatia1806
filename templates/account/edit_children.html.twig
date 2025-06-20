@@ -1,0 +1,121 @@
+
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<h1 class="text-center mt-5 ">Mon compte</h1>
+<div class="container mt-5 d-flex flex-wrap justify-content-between">
+    <div class="col-md-3 col-sm-12 mt-4">
+        {% include 'account/_menu.html.twig' %}
+    </div>
+    <div class="form-wrapper col-md-8 col-sm-12 mt-4 ">
+        <div class=" d-flex justify-content-between align-items-center mb-3">
+            <h3>Mes enfants déclarés</h3>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#childModal" id="add-child-btn">
+                Ajouter un enfant
+            </button>
+        </div>
+
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>Prénom</th>
+                    <th>Nom</th>
+                    <th>Date de naissance</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for child in app.user.children %}
+                    <tr>
+                        <td>{{ child.firstname }}</td>
+                        <td>{{ child.lastname }}</td>
+                        <td>{{ child.birthdate ? child.birthdate|date('d/m/Y') : '' }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-secondary edit-child-btn"
+                                    data-id="{{ child.id }}"
+                                    data-firstname="{{ child.firstname }}"
+                                    data-lastname="{{ child.lastname }}"
+                                    data-birthdate="{{ child.birthdate ? child.birthdate|date('Y-m-d') : '' }}"
+                                    data-bs-toggle="modal" data-bs-target="#childModal">
+                                Éditer
+                            </button>
+                            <form method="post" action="{{ path('app_delete_children', {id: child.id}) }}" style="display:inline;" onsubmit="return confirm('Supprimer cet enfant ?');">
+                                <button class="btn btn-sm btn-danger" type="submit">Supprimer</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center">Aucun enfant déclaré.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>  
+    </div>
+</div>
+{# Modal Bootstrap pour ajouter/éditer un enfant #}
+<div class="modal fade" id="childModal" tabindex="-1" aria-labelledby="childModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="child-form" method="post" action="{{ path('app_create_children') }}">
+        <div class="modal-header">
+          <h5 class="modal-title" id="childModalLabel">Ajouter/Éditer un enfant</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" name="child_id" id="child_id">
+            <div class="mb-3">
+                <label for="child_firstname" class="form-label">Prénom</label>
+                <input type="text" class="form-control" id="child_firstname" name="firstname" required>
+            </div>
+            <div class="mb-3">
+                <label for="child_lastname" class="form-label">Nom</label>
+                <input type="text" class="form-control" id="child_lastname" name="lastname" required>
+            </div>
+            <div class="mb-3">
+                <label for="child_birthdate" class="form-label">Date de naissance</label>
+                <input type="date" class="form-control" id="child_birthdate" name="birthdate" required>
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="submit" class="btn btn-primary">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Reset modal for add
+            document.getElementById('add-child-btn').addEventListener('click', function () {
+                document.getElementById('childModalLabel').textContent = 'Ajouter un enfant';
+                document.getElementById('child_id').value = '';
+                document.getElementById('child_firstname').value = '';
+                document.getElementById('child_lastname').value = '';
+                document.getElementById('child_birthdate').value = '';
+                document.getElementById('child-form').action = "{{ path('app_create_children') }}";
+            });
+
+            // Fill modal for edit
+            document.querySelectorAll('.edit-child-btn').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    document.getElementById('childModalLabel').textContent = 'Éditer un enfant';
+                    document.getElementById('child_id').value = btn.dataset.id;
+                    document.getElementById('child_firstname').value = btn.dataset.firstname;
+                    document.getElementById('child_lastname').value = btn.dataset.lastname;
+                    document.getElementById('child_birthdate').value = btn.dataset.birthdate;
+                    document.getElementById('child-form').action = "{{ path('app_edit_children') }}";
+                });
+            });
+        });
+    </script>
+{% endblock %}
+

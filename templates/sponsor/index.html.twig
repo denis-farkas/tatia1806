@@ -1,0 +1,24 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+<section style="padding: 60px 20px; background-color: #f0f0f0;">
+  <div style="max-width: 1100px; margin: 0 auto;">
+    <h2 style="text-align: center; font-size: 26px; margin-bottom: 30px;">Nos sponsors</h2>
+    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px;">
+      {% for sponsor in sponsors %}
+        <div style="width: 200px; border: 1px solid #ddd; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); background-color: #fff; padding: 10px; text-align: center;">
+          <img src="{{ asset('public/build/images/sponsors/' ~ sponsor.image) }}" alt="{{ sponsor.name }}" style="width: 100%; height: auto; border-radius: 6px;">
+          <p style="margin-top: 10px; font-size: 14px; color: #333;">{{ sponsor.name }}</p>
+        </div>
+      {% else %}
+        <p>Aucun sponsor pour le moment.</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+
+
+
+{% endblock %}

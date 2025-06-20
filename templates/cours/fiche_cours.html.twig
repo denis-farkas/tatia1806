@@ -1,0 +1,92 @@
+{# filepath: c:\Users\denis\Desktop\tatia1806\templates\cours\fiche_cours.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ cours.name }}{% endblock %}
+
+{% block body %}
+<div class="container-lg my-5" style="max-width: 1200px;">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('app_cours') }}">Cours</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ cours.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="cours-fiche shadow-sm mx-auto" style="max-width: 900px;">
+        <div class="row g-4">
+            <!-- Section gauche: Informations cours -->
+            <div class="col-md-7">
+                <div class="cours-info">
+                    <h1 class="cours-title h2">{{ cours.name }}</h1>
+                    
+                    <div class="cours-age mb-2">
+                        <span class="badge bg-info text-dark">{{ cours.age }}</span>
+                    </div>
+                    
+                    <div class="cours-day-hour mb-2">
+                        <span class="badge bg-light text-dark">
+                            {{ cours.day }} 
+                            de {{ cours.startHour ? cours.startHour|date('H:i') : '' }} à {{ cours.endHour ? cours.endHour|date('H:i') : '' }}
+                        </span>
+                    </div>
+                    
+                    <div class="cours-salle mb-2">
+                        <span class="badge bg-secondary">{{ cours.salle }}</span>
+                    </div>
+                    
+                    <div class="cours-description mb-4">
+                        <p class="text-muted">{{ cours.description }}</p>
+                    </div>
+                    
+                    <div class="cours-price-section mb-4">
+                        <span class="current-price fs-3 fw-bold text-primary">{{ cours.price|number_format(2, ',', ' ') }} €</span>
+                        <small class="price-note text-muted d-block">Tarif annuel</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section droite: Illustration générique ou image de salle -->
+            <div class="col-md-5">
+                <div class="cours-gallery text-center">
+                    <div class="main-image mb-3">
+                        <img class="img-cours-main img-fluid"
+                             style="max-width: 300px; height: auto; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);"
+                             src="{{ asset('build/images/cours-default.jpg') }}"
+                             alt="Illustration du cours {{ cours.name }}">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section inscription compacte -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="order-section" style="background: #f8f9fa; border-radius: 8px; padding: 25px; border: 1px solid #dee2e6;">
+                    <form action="{{ path('add_cours_to_cart', {id: cours.id, redirect_to: app.request.uri}) }}" method="POST" class="order-form">
+                        <div class="row align-items-center g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold mb-2">Inscrire pour :</label>
+                                <select name="child" class="form-select" required>
+                                    <option value="">Sélectionnez votre enfant ou vous-même</option>
+                                    {% for child in app.user ? app.user.children : [] %}
+                                        <option value="{{ child.id }}">{{ child.firstname }} {{ child.lastname }}</option>
+                                    {% endfor %}
+                                    <option value="parent">Moi-même ({{ app.user.firstname ~ ' ' ~ app.user.lastname }})</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mt-5">
+                                <button type="submit" class="btn bg-gold white ">
+                                    <i class="fas fa-user-plus me-2"></i>
+                                    Inscrire à ce cours
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- Fin de la section inscription compacte -->
+    </div>
+</div>
+{% endblock %}

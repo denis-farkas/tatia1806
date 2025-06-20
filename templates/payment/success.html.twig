@@ -1,0 +1,67 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<div class="container">
+    <h1 class="text-center">Paiement réalisé avec succès</h1>
+    <div class="col-sm-12 col-md-9 mx-auto">
+        <small><a href="{{ path('app_account') }}" class="btn btn-light btn-sm">Retour</a></small>
+
+        <h5 class="mt-4">Ma commande n°{{ order.id }}</h5>
+        <span>Passée le : {{ order.createdAt|date('d/m/Y') }}</span><br/>
+        <span>Statut : {{ order.state }}</span><br/>
+        <br/>
+        <hr>
+
+        <div class="row my-4">
+            <div class="col-md-6">
+                <strong>Adresse de livraison :</strong><br/>
+                {{ order.delivery|raw }}
+            </div>
+        </div>
+
+        <hr>
+
+        <strong>Contenu de la commande :</strong><br/>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Illustration</th>
+                    <th scope="col">Nom</th>
+                    <th scope="col">Pour</th>
+                    <th scope="col">Quantité</th>
+                    <th scope="col">Prix unitaire</th>
+                    <th scope="col">Total T.T.C</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detail in order.orderDetails %}
+                    <tr>
+                        <td>
+                            {% if detail.productIllustration == 'cours_image.jpg' %}
+                                <img src="/build/images/cours_image.jpg" width="100px" alt="">
+                            {% else %}
+                                <img src="/build/images/boutique/{{ detail.productIllustration }}" width="100px" alt="">
+                            {% endif %}
+                        </td>
+                        <td>{{ detail.productName }}</td>
+                        <td>
+                            {# Affiche le prénom/nom de l'enfant si c'est un cours #}
+                            {% if detail.productIllustration == 'cours_image.jpg' and detail.childFirstname is defined %}
+                                {{ detail.childFirstname }} 
+                            {% endif %}
+                        </td>
+                        <td>{{ detail.productQuantity }}</td>
+                        <td>{{ detail.productPrice|number_format(2, ',', ' ') }} €</td>
+                        <td>{{ (detail.productPrice * detail.productQuantity)|number_format(2, ',', ' ') }} €</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div>
+            <strong>Total T.T.C : </strong> {{ order.totalPrice|number_format(2, ',', ' ') }} €
+        </div>
+    </div>
+</div>
+{% endblock %}

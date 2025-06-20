@@ -1,0 +1,77 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello HomeController!{% endblock %}
+
+{% block body %}
+
+<section style="padding: 20px 20px;">
+  <div style="max-width: 800px; margin: 0 auto; text-align: center;">
+    <h2 style="font-size: 28px; margin-bottom: 16px; font-weight: 600; color: #b98d75;">
+      Les membres du bureau de l'école de danse
+    </h2>
+    <p style="font-size: 16px; color: #666; margin-bottom: 30px;">
+      Découvrez l'équipe engagée qui fait vivre l'école de danse tout au long de l'année.
+    </p>
+
+    <div class="members">
+      <img 
+        src="{{ asset('build/images/members/members.jpg') }}" 
+        alt="Photo des membres du bureau"
+        class="bureau-photo"
+      >
+    </div>
+  </div>
+</section>
+
+<section style="padding: 40px 20px; ">
+  <div style="max-width: 1000px; margin: 0 auto; text-align: center;">
+    <p style="font-size: 16px; color: #666; margin-bottom: 40px;">
+      Le bureau coordonne les activités de l’école, assure sa bonne gestion et participe activement à la vie associative. Il veille à ce que chaque élève puisse évoluer dans un cadre dansant et dynamique.
+    </p>
+
+    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 30px;">
+      <div style="width: 220px; background-color: #dcdcdc;border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+        <h4 style="margin: 0 0 8px; color: #333; font-size: 18px;">Jérôme BOUCHACOT</h4>
+        <p style="margin: 0; color: #ffff; font-size: 14px;">Président</p>
+      </div>
+
+      <div style="width: 220px; background-color: #dcdcdc; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+        <h4 style="margin: 0 0 8px; color: #333; font-size: 18px;">Françoise HERVIEU</h4>
+        <p style="margin: 0; color: #fff; font-size: 14px;">Secrétaire</p>
+      </div>
+
+      <div style="width: 220px;background-color: #dcdcdc; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+        <h4 style="margin: 0 0 8px; color: #333; font-size: 18px;">Yvette LE PORT</h4>
+        <p style="margin: 0; color: #fff; font-size: 14px;">Secrétaire adjointe</p>
+      </div>
+
+      <div style="width: 220px;background-color: #dcdcdc; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+        <h4 style="margin: 0 0 8px; color: #333; font-size: 18px;">Pascal LE PORT</h4>
+        <p style="margin: 0; color: #fff; font-size: 14px;">Trésorier</p>
+      </div>
+
+      <div style="width: 250px;background-color: #dcdcdc; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+        <h4 style="margin: 0 0 8px; color: #333; font-size: 18px;">Claude HERVIEU</h4>
+        <p style="margin: 0; color: #fff; font-size: 14px;">Trésorier adjoint</p>
+      </div>
+
+      <div style="width: 250px;background-color: #dcdcdc; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+        <h4 style="margin: 0 0 8px; color: #333; font-size: 18px;">Florian Brohan</h4>
+        <p style="margin: 0; color: #fff; font-size: 14px;">Chargé de communication</p>
+      </div>
+
+      <div style="width: 250px;background-color: #dcdcdc; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+        <h4 style="margin: 0 0 8px; color: #333; font-size: 18px;">Tatiana MARTIN DESBOIS</h4>
+        <p style="margin: 0; color: #fff; font-size: 14px;">Responsable web</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+
+{% endblock %}
+
+
+

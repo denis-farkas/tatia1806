@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nos événements et actualités{% endblock %}
+
+{% block body %}
+
+<link rel="stylesheet" href="{{ asset('css/style.css') }}">
+
+<section class="container my-5">
+  <h2 class="text-center mb-4">Nos événements et actualités</h2>
+
+  <div class="d-flex flex-wrap justify-content-center gap-4">
+    {% if events is not empty %}
+      {# on inverse l'ordre ici (affiche les plus anciens d'abord, donc plus récents à la fin) #}
+      {% for ev in events|reverse %}
+        <a href="{{ ev.link }}" target="_blank" class="event-card">
+          {% if ev.image %}
+            <img src="{{ asset('build/images/events/' ~ ev.image) }}" alt="{{ ev.name }}">
+          {% endif %}
+          <div class="event-caption">
+            <h5>{{ ev.name }}</h5>
+          </div>
+        </a>
+      {% endfor %}
+    {% else %}
+      <p>Aucun événement pour le moment.</p>
+    {% endif %}
+  </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,42 @@
+{# filepath: c:\Users\denis\Desktop\tatia1806\templates\account\cours.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<h1 class="text-center mt-5">Mon compte</h1>
+<div class="container mt-5 d-flex flex-wrap justify-content-between">
+    <div class="col-md-3 col-sm-12 mt-4">
+        {% include 'account/_menu.html.twig' %}
+    </div>
+
+    <div class="form-container justify-content-start col-md-8 col-sm-12 mt-4">
+        <div class="text-center form-wrapper mb-5">
+            <h5>Mes cours inscrits</h5>
+        </div>
+
+        {% set userCours = app.user.userCours %}
+        {% if userCours is empty %}
+            <div class="alert alert-info text-center">
+                Vous n'êtes inscrit à aucun cours pour le moment.
+            </div>
+        {% else %}
+            <div class="row">
+                {% for inscription in userCours %}
+                    <div class="col-12 form-wrapper mb-4">
+                        <div>
+                            <strong>{{ inscription.cours.name }}</strong><br/>
+                            {% if inscription.firstname %}
+                                Pour : {{ inscription.firstname }}<br/>
+                            {% endif %}
+                            Jour : {{ inscription.cours.day }}<br/>
+                            Horaire :
+                            {{ inscription.cours.startHour ? inscription.cours.startHour|date('H:i') : '' }} -
+                            {{ inscription.cours.endHour ? inscription.cours.endHour|date('H:i') : '' }}<br/>
+                            <span class="fw-bold">Prix : {{ inscription.cours.price|number_format(2, ',', ' ') }} €</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

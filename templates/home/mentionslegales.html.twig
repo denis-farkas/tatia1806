@@ -1,0 +1,88 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mentions légales et Conditions Générales de Vente{% endblock %}
+
+{% block body %}
+<section style="padding: 60px 20px;">
+  <div style="max-width: 900px; margin: 0 auto;">
+    
+    <h1 style="font-size: 28px; margin-bottom: 30px; font-weight: 600; color: #b98d75; text-align: center;">
+      Mentions légales &amp; Conditions Générales de Vente
+    </h1>
+
+    {% set h2style = "font-size: 28px; margin-bottom: 16px; font-weight: 600; color: #b98d75;" %}
+    {% set pstyle = "font-size: 16px; color: #666; margin-bottom: 20px;" %}
+
+    <h2 style="{{ h2style }}">Éditeur du site</h2>
+    <p style="{{ pstyle }}">
+      École de Danse Sara Leclerc<br>
+      Adresse : 16 ter rue de Bodelio 56220 MALANSAC<br>
+      Email : eddsl.malansac@gmail.com<br>
+      SIRET : 93428287200019<br>
+      Responsable de publication : Tatiana MARTIN DESBOIS
+    </p>
+
+    <h2 style="{{ h2style }}">Hébergement</h2>
+    <p style="{{ pstyle }}">
+      Infomaniak – Rue Eugène-Marziano 25, 1227 Genève, Suisse<br>
+      Site : <a href="https://www.infomaniak.com" target="_blank" style="color: #b98d75;">infomaniak.com</a>
+    </p>
+
+    <h2 style="{{ h2style }}">Propriété intellectuelle</h2>
+    <p style="{{ pstyle }}">
+      Tous les contenus (textes, images, logos, vidéos) présents sur ce site sont la propriété exclusive de l'École ou de ses partenaires. Toute reproduction est interdite sans autorisation écrite.
+    </p>
+
+    <h2 style="{{ h2style }}">Données personnelles</h2>
+    <p style="{{ pstyle }}">
+      Les données collectées via le site sont utilisées uniquement dans le cadre des activités de l’école (cours, inscriptions, boutique). Conformément au RGPD, vous pouvez exercer vos droits en écrivant à : eddsl.malansac@gmail.com.
+    </p>
+
+    <h2 style="{{ h2style }}">Conditions Générales de Vente</h2>
+
+    <h3 style="{{ h2style|replace({ '28px': '20px' }) }}">1. Activités proposées</h3>
+    <p style="{{ pstyle }}">
+      L’école propose des cours de danse, des spectacles, des événements ainsi qu’une boutique en ligne de vêtements, accessoires et photos liés aux activités de l’école.
+    </p>
+
+    <h3 style="{{ h2style|replace({ '28px': '20px' }) }}">2. Tarifs</h3>
+    <p style="{{ pstyle }}">
+      Les prix sont indiqués en euros TTC. Pour les cours, les tarifs sont indiqués sur la page “Planning et tarifs”. Pour les produits, ils figurent sur chaque fiche article.
+    </p>
+
+    <h3 style="{{ h2style|replace({ '28px': '20px' }) }}">3. Commande de produits</h3>
+    <p style="{{ pstyle }}">
+      Les commandes s’effectuent en ligne ou via l’école directement. Le paiement valide la commande. Un e-mail de confirmation est envoyé à l’acheteur.
+    </p>
+
+    <h3 style="{{ h2style|replace({ '28px': '20px' }) }}">4. Paiement</h3>
+    <p style="{{ pstyle }}">
+      Paiement possible par virement, espèces ou chèque. Les produits ou prestations sont considérés comme réservés une fois le paiement reçu.
+    </p>
+
+    <h3 style="{{ h2style|replace({ '28px': '20px' }) }}">5. Livraison / Retrait</h3>
+    <p style="{{ pstyle }}">
+      Les produits sont remis en main propre lors des cours ou événements. Envoi postal possible sur demande avec frais d’expédition à la charge de l’acheteur.
+    </p>
+
+    <h3 style="{{ h2style|replace({ '28px': '20px' }) }}">6. Droit de rétractation</h3>
+    <p style="{{ pstyle }}">
+      L’acheteur dispose de 14 jours à compter de la réception du produit pour exercer son droit de rétractation (sauf produits personnalisés comme photos imprimées).
+    </p>
+
+    <h3 style="{{ h2style|replace({ '28px': '20px' }) }}">7. Responsabilité</h3>
+    <p style="{{ pstyle }}">
+      L’école décline toute responsabilité en cas de mauvais usage des produits. Les cours n’ont pas de visée thérapeutique et ne remplacent pas un avis médical.
+    </p>
+
+    <h3 style="{{ h2style|replace({ '28px': '20px' }) }}">8. Litiges</h3>
+    <p style="{{ pstyle }}">
+      En cas de litige, l’école privilégiera une solution amiable. À défaut, les tribunaux français seront seuls compétents.
+    </p>
+
+    <p style="font-size: 14px; color: #999; margin-top: 40px;">
+      Dernière mise à jour : {{ "now"|date("d/m/Y") }}
+    </p>
+  </div>
+</section>
+{% endblock %}

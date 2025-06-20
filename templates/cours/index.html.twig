@@ -1,0 +1,69 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nos cours de danse{% endblock %}
+
+{% block body %}
+
+<section class="container my-5">
+  <div class="text-center mb-5">
+    <h2 class="fw-light" style="color: #4a3e39;">Nos cours de danse</h2>
+    <p class="text-muted">Cours adaptés à tous les âges et niveaux. Retrouvez les jours, horaires et tarifs par type de cours.</p>
+  </div>
+
+  <div class="text-center mb-5">
+    <h2><i>Les inscriptions de ne sont pas encore ouvertes.</i></h2>
+  </div>
+
+  {% for type, coursList in coursParType %}
+    <div class="mb-5">
+      <h3 class="mb-3" style="color: #b98d75; font-size: 1.75rem; border-bottom: 2px solid #b98d75; display: inline-block;">
+        {{ type }}
+      </h3>
+
+      <div class="row">
+        {% for cours in coursList %}
+          <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card shadow-sm h-100">
+              <div class="card-body">
+                <h5 class="card-title mb-2" style="color: #4a3e39; font-weight: 500;">
+                  {{ cours.age }}
+                </h5>
+                <p class="card-text text-muted small mb-2">
+                  {{ cours.description }}
+                </p>
+                <ul class="list-unstyled small mb-3">
+                  <li>📅 <strong>{{ cours.day }}</strong></li>
+                  <li>🕒 {{ cours.schedule }}</li>
+                  <li>📍 {{ cours.salle }}</li>
+                </ul>
+                <span class="badge bg-light border" style="color: #4a3e39;">
+                  {{ cours.price }} €
+                </span>
+              </div>
+              <div class="card-footer">
+                {% if app.user %}
+                    <a href="{{ path('app_cours_by_id', {id: cours.id}) }}" class="btn btn-outline-success mt-3">
+                        Inscription
+                    </a>
+                {% else %}
+                    <a href="{{ path('app_login') }}" class="btn btn-outline-primary mt-3">
+                        Se connecter pour s'inscrire
+                    </a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endfor %}
+</section>
+
+<div class="calendar col-md-12 col-sm-12">
+  <div
+    id="calendar-holder"
+    data-events-url="{{ path('fc_load_events') }}"
+    ></div>
+</div>
+
+{% endblock %}

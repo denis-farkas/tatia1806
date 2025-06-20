@@ -1,0 +1,18 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Page en cours de création{% endblock %}
+
+{% block body %}
+<section class="container text-center py-5">
+  <div class="my-5 py-5">
+    <img src="{{ asset('build/images/header/Logo_sans_fond.png') }}" alt="Logo" style="max-width: 120px;" class="mb-4">
+
+    <h1 class="fw-light" style="color: #4a3e39;">Page en construction</h1>
+    <p class="text-muted mb-4">Cette page sera bientôt disponible. Merci pour votre patience !</p>
+
+    <a href="{{ path('app_home') }}" class="btn btn-outline-dark" style="border-color: #b98d75; color: #b98d75;">
+      ← Retour à l’accueil
+    </a>
+  </div>
+</section>
+{% endblock %}
