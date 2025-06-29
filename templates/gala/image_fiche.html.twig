@@ -1,0 +1,76 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="m-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
+        <li class="breadcrumb-item"><a href="{{ path('app_gala') }}">Liste des Galas</a></li>
+        <li class="breadcrumb-item"><a href="{{ path('app_gala_gallery', { id: gala.id }) }}">Galerie du gala {{ gala.name }}</a></li>
+        <li class="breadcrumb-item"><a href="{{ path('app_gala_cours_gallery', { id: gala.id, cours: cours.id }) }}">Galerie du cours {{ cours.name }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Détails de l'image</li>
+    </ol>
+</nav>
+
+<h1 class="text-center my-5">Détails de l'image</h1>
+
+<div class="card w-75 mx-auto flex-row">
+    <img src="{{ asset('images/galas/' ~ image.filename) }}" class="card-img-left img-fluid w-50" alt="Image">
+    <div class="card-body ms-4">
+        <h5 class="card-title mt-4"><strong>Nom de l'image:</strong> {{ image.filename }}</h5>
+        <p class="card-text"><strong>Gala:</strong> {{ gala.name }}</p>
+        <p class="card-text"><strong>Date du Gala:</strong> {{ gala.date|date('d/m/Y') }}</p>
+        <p class="card-text"><strong>Cours:</strong> {{ cours.name }}</p>
+        <p class="card-text"><strong>Âge:</strong> {{ cours.age }}</p>
+        <p class="card-text"><strong>Salle:</strong> {{ cours.salle }}</p>
+        <p class="card-text"><strong>Prix:</strong> {{ image.price }} €</p>
+
+        <!-- Quantity Selector -->
+        <div class="order-section col-md-12">
+        
+        <form action="{{ path('add_image_to_cart', { id: image.id }) }}" method="POST">
+            <div class="quantity-selector mb-3">
+                <label for="quantity" class="form-label fw-semibold">Quantité :</label>
+                <div class="input-group">
+                    <button type="button" class="btn btn-outline-secondary" data-action="decrease">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <input type="number" id="quantity" name="quantity" class="form-control text-center" value="1" min="1">
+                    <button type="button" class="btn btn-outline-secondary" data-action="increase">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+            <button type="submit" class="btn bg-gold white">Ajouter au panier</button>
+        </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const quantityInput = document.getElementById('quantity');
+            const decreaseBtn = document.querySelector('[data-action="decrease"]');
+            const increaseBtn = document.querySelector('[data-action="increase"]');
+
+            if (quantityInput && decreaseBtn && increaseBtn) {
+                decreaseBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const currentValue = parseInt(quantityInput.value);
+                    if (currentValue > 1) {
+                        quantityInput.value = currentValue - 1;
+                    }
+                });
+
+                increaseBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const currentValue = parseInt(quantityInput.value);
+                    quantityInput.value = currentValue + 1;
+                });
+            }
+        });
+    </script>
+{% endblock %}

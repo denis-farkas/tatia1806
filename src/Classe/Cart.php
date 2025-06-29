@@ -7,21 +7,22 @@ use Symfony\Component\HttpFoundation\RequestStack;
 
 class Cart
 {
-    
-
     public function __construct(private RequestStack $requestStack)
     {
     }
 
-    public function addProduct($product, $quantity)
+    // Add a ProductVariant to the cart
+    public function addVariant($variant, $quantity)
     {
         $cart = $this->requestStack->getSession()->get('cart', []);
-        $id = $product->getId();
+        $id = $variant->getId();
 
         if (empty($cart[$id])) {
-            $cart[$product->getId()] = [
-                'object' => $product,
-                'qty' => $quantity
+            $cart[$id] = [
+                'variant' => $variant,
+                'qty' => $quantity,
+                'price' =>  $variant->getProduct()->getPrice(),
+                'attributes' => $variant->getAttributesAsArray(), // Include attributes as an array
             ];
         } else {
             $cart[$id]['qty'] += $quantity;
@@ -30,66 +31,104 @@ class Cart
         $this->requestStack->getSession()->set('cart', $cart);
     }
 
-    public function increaseQuantity($product)
+    // Remove a ProductVariant from the cart
+    public function removeVariant($id)
     {
         $cart = $this->requestStack->getSession()->get('cart', []);
-        $id = $product->getId();
 
-        $cart[$id]['qty']++;
-        $this->requestStack->getSession()->set('cart', $cart);
-    }
+        dump($cart); // Debug the cart structure before removing the item
 
-    public function decreaseQuantity($product)
-    {
-        $cart = $this->requestStack->getSession()->get('cart', []);
-        $id = $product->getId();
-
-        if ($cart[$id]['qty'] > 1) {
-            $cart[$id]['qty']--;
-        } else {
-            unset($cart[$id]);
+        if (isset($cart[$id])) {
+            unset($cart[$id]); // Remove the variant from the cart
         }
 
+        dump($cart); // Debug the cart structure after removing the item
+
         $this->requestStack->getSession()->set('cart', $cart);
     }
 
-    public function remove($product)
+    // Add an image to the images cart
+    public function addImage($image, $quantity)
     {
-        $cart = $this->requestStack->getSession()->get('cart', []);
-        $id = $product->getId();
+        $imagesCart = $this->requestStack->getSession()->get('images_cart', []);
+        $id = $image->getId();
 
-        unset($cart[$id]);
-        $this->requestStack->getSession()->set('cart', $cart);
+        if (empty($imagesCart[$id])) {
+            $imagesCart[$id] = [
+                'image' => $image,
+                'qty' => $quantity,
+            ];
+        } else {
+            $imagesCart[$id]['qty'] += $quantity;
+        }
+
+        $this->requestStack->getSession()->set('images_cart', $imagesCart);
     }
 
+    // Remove an image from the images cart
+    public function removeImage($image)
+    {
+        $imagesCart = $this->requestStack->getSession()->get('images_cart', []);
+        $id = $image->getId();
+
+        unset($imagesCart[$id]);
+        $this->requestStack->getSession()->set('images_cart', $imagesCart);
+    }
+
+    // Get the images cart
+    public function getImagesCart()
+    {
+        return $this->requestStack->getSession()->get('images_cart', []);
+    }
+
+    // Get the total quantity of items in the cart
     public function getTotalQuantity()
     {
         $cart = $this->requestStack->getSession()->get('cart', []);
+        $coursCart = $this->requestStack->getSession()->get('cours_cart', []);
+        $imagesCart = $this->requestStack->getSession()->get('images_cart', []);
         $quantity = 0;
 
-        foreach ($cart as $product) {
-            $quantity += $product['qty'];
+        foreach ($cart as $item) {
+            $quantity += $item['qty'];
+        }
+
+        foreach ($coursCart as $item) {
+            $quantity += $item['quantity'];
+        }
+
+        foreach ($imagesCart as $item) {
+            $quantity += $item['qty'];
         }
 
         return $quantity;
     }
 
+
+    // Get the totals for the cart
     public function getTotals(): array
     {
         $cart = $this->requestStack->getSession()->get('cart', []);
         $coursCart = $this->requestStack->getSession()->get('cours_cart', []);
+        $imagesCart = $this->requestStack->getSession()->get('images_cart', []);
         $subtotal = 0;
         $shipping = 0;
 
         // Products
-        foreach ($cart as $product) {
-            $subtotal += $product['object']->getPrice() * $product['qty'];
-            $shipping += 4.49 * $product['qty']; // 4.49€ per product
+        foreach ($cart as $item) {
+            $subtotal += (int) $item['price'] * $item['qty']; // Use the stored price directly
+
+            // Example shipping cost logic
+            $shipping += 6 + (1.5 * $item['qty']);
         }
 
         // Cours (no shipping)
         foreach ($coursCart as $item) {
             $subtotal += $item['cours']->getPrice() * $item['quantity'];
+        }
+        // Images (no shipping)
+        foreach ($imagesCart as $item) {
+            $subtotal += $item['image']->getPrice() * $item['qty'];
         }
 
         $total = $subtotal + $shipping;
@@ -101,22 +140,27 @@ class Cart
         ];
     }
 
+    // Get the cart
     public function getCart()
     {
         return $this->requestStack->getSession()->get('cart', []);
     }
 
+    // Remove all items from the cart
     public function removeAll()
     {
         $this->requestStack->getSession()->remove('cart');
     }
 
+    // Reset both product, cours, and images carts
     public function reset()
     {
         $this->requestStack->getSession()->remove('cart');
         $this->requestStack->getSession()->remove('cours_cart');
+        $this->requestStack->getSession()->remove('images_cart');
     }
 
+    // Add a cours to the cours cart
     public function addCours($cours, $childFirstname, $childLastname)
     {
         $cart = $this->requestStack->getSession()->get('cours_cart', []);
@@ -161,5 +205,11 @@ class Cart
         $endB = $coursB->getEndHour()->format('H:i');
 
         return ($startA < $endB) && ($startB < $endA);
+    }
+
+    // Get the cours cart
+    public function getCoursCart(): array
+    {
+        return $this->requestStack->getSession()->get('cours_cart', []);
     }
 }

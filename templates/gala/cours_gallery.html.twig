@@ -1,0 +1,36 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<nav aria-label="breadcrumb" class="m-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
+        <li class="breadcrumb-item"><a href="{{ path('app_gala') }}">Liste des Galas</a></li>
+        <li class="breadcrumb-item"><a href="{{ path('app_gala_gallery', { id: gala.id }) }}">Galerie du gala {{ gala.name }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Galerie du cours {{ cours.name }}</li>
+    </ol>
+</nav>
+<h2 class="text-center my-5">Galerie d'images pour le cours {{ cours.name ~ ' (' ~ cours.age ~ ', '~ cours.salle ~')' }} - lors du gala {{ gala.name }}</h2>
+
+<div class="row w-75 mx-auto">
+
+    {% for image in images %}
+        <div class="col-md-4 col-lg-4 col-sm-12 mb-4">
+            <div class="card mb-4">
+                <img src="{{ asset('images/galas/' ~ image.filename) }}" class="card-img-top" alt="{{ image.filename }}">
+                <div class="card-body">
+                    <a href="{{ path('app_gala_image_fiche', { id: image.id }) }}" class="btn bg-gold white">Acheter</a>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<div class="pagination">
+    {% if currentPage > 1 %}
+        <a href="{{ path('app_gala_cours_gallery', { id: gala.id, cours: cours.id, page: currentPage - 1 }) }}" class="btn btn-secondary">Précédent</a>
+    {% endif %}
+    {% if currentPage < totalPages %}
+        <a href="{{ path('app_gala_cours_gallery', { id: gala.id, cours: cours.id, page: currentPage + 1 }) }}" class="btn btn-secondary">Suivant</a>
+    {% endif %}
+</div>
+{% endblock %}

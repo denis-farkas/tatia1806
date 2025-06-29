@@ -2,8 +2,7 @@
 
 namespace App\Service;
 
-use App\Entity\Product;
-use App\Entity\Stock;
+use App\Entity\ProductVariant;
 use App\Entity\StockMovement;
 use App\Enum\MovementType;
 use Doctrine\ORM\EntityManagerInterface;
@@ -16,85 +15,71 @@ class StockManager
         private Security $security
     ) {}
 
-    public function addStock(Product $product, int $quantity, string $reason = 'Manual addition'): void
+    public function addStock(ProductVariant $variant, int $quantity, string $reason = 'Manual addition'): void
     {
-        $stock = $product->getStock();
-        if (!$stock) {
-            $stock = new Stock();
-            $stock->setProduct($product);
-            $product->setStock($stock);
-        }
+        $variant->setQuantity($variant->getQuantity() + $quantity);
+        $variant->setUpdatedAt(new \DateTimeImmutable());
 
-        $stock->setQuantity($stock->getQuantity() + $quantity);
-        $stock->setUpdatedAt(new \DateTimeImmutable());
+        $this->createMovement($variant, MovementType::IN, $quantity, $reason);
 
-        $this->createMovement($product, MovementType::IN, $quantity, $reason);
-        
-        $this->entityManager->persist($stock);
+        $this->entityManager->persist($variant);
         $this->entityManager->flush();
     }
 
-    public function reserveStock(Product $product, int $quantity): bool
+    public function reserveStock(ProductVariant $variant, int $quantity): bool
     {
-        $stock = $product->getStock();
-        if (!$stock || $stock->getAvailableQuantity() < $quantity) {
+        if ($variant->getAvailableQuantity() < $quantity) {
             return false;
         }
 
-        $stock->setReserved($stock->getReserved() + $quantity);
-        $stock->setUpdatedAt(new \DateTimeImmutable());
+        $variant->setReserved($variant->getReserved() + $quantity);
+        $variant->setUpdatedAt(new \DateTimeImmutable());
 
-        $this->createMovement($product, MovementType::RESERVED, $quantity, 'Order reservation');
-        
-        $this->entityManager->persist($stock);
+        $this->createMovement($variant, MovementType::RESERVED, $quantity, 'Order reservation');
+
+        $this->entityManager->persist($variant);
         $this->entityManager->flush();
 
         return true;
     }
 
-    public function releaseStock(Product $product, int $quantity): void
+    public function releaseStock(ProductVariant $variant, int $quantity): void
     {
-        $stock = $product->getStock();
-        if (!$stock) return;
+        $variant->setReserved(max(0, $variant->getReserved() - $quantity));
+        $variant->setUpdatedAt(new \DateTimeImmutable());
 
-        // Diminuer les réservations et le stock total
-        $stock->setReserved(max(0, $stock->getReserved() - $quantity));
-        $stock->setQuantity(max(0, $stock->getQuantity() - $quantity));
-        $stock->setUpdatedAt(new \DateTimeImmutable());
+        $this->createMovement($variant, MovementType::OUT, $quantity, 'Order cancellation - Stock released');
 
-        $this->createMovement($product, MovementType::OUT, $quantity, 'Order completed - Stock sold');
-        
-        $this->entityManager->persist($stock);
+        $this->entityManager->persist($variant);
         $this->entityManager->flush();
     }
 
-    public function removeStock(Product $product, int $quantity, string $reason = 'Manual removal'): bool
+    public function removeStock(ProductVariant $variant, int $quantity, string $reason = 'Manual removal'): bool
     {
-        $stock = $product->getStock();
-        if (!$stock || $stock->getQuantity() < $quantity) {
+        if ($variant->getQuantity() < $quantity) {
             return false;
         }
 
-        $stock->setQuantity($stock->getQuantity() - $quantity);
-        $stock->setUpdatedAt(new \DateTimeImmutable());
+        $variant->setQuantity($variant->getQuantity() - $quantity);
+        $variant->setUpdatedAt(new \DateTimeImmutable());
 
-        $this->createMovement($product, MovementType::OUT, $quantity, $reason);
-        
-        $this->entityManager->persist($stock);
+        $this->createMovement($variant, MovementType::OUT, $quantity, $reason);
+
+        $this->entityManager->persist($variant);
         $this->entityManager->flush();
 
         return true;
     }
 
-    public function checkStockAvailability(Product $product, int $requestedQuantity): bool
+    public function checkStockAvailability(ProductVariant $variant, int $requestedQuantity): bool
     {
-        return $product->getAvailableQuantity() >= $requestedQuantity;
+        return $variant->getAvailableQuantity() >= $requestedQuantity;
     }
 
-    private function createMovement(Product $product, MovementType $type, int $quantity, string $reason): void
+    private function createMovement(ProductVariant $variant, MovementType $type, int $quantity, string $reason): void
     {
         $movement = new StockMovement();
-        $movement->setProduct($product);
+        $movement->setVariant($variant);
         $movement->setType($type);
         $movement->setQuantity($quantity);
         $movement->setReason($reason);
@@ -102,5 +87,21 @@ class StockManager
         $movement->setCreatedBy($this->security->getUser());
 
         $this->entityManager->persist($movement);
+    }
+
+    public function confirmStock(ProductVariant $variant, int $quantity): void
+    {
+        // Deduct the reserved stock
+        $variant->setReserved(max(0, $variant->getReserved() - $quantity));
+
+        // Deduct the actual stock
+        $variant->setQuantity(max(0, $variant->getQuantity() - $quantity));
+
+        $variant->setUpdatedAt(new \DateTimeImmutable());
+
+        $this->createMovement($variant, MovementType::OUT, $quantity, 'Order confirmed - Stock deducted');
+
+        $this->entityManager->persist($variant);
+        $this->entityManager->flush();
     }
 }

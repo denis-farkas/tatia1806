@@ -16,28 +16,21 @@ class UserCoursRepository extends ServiceEntityRepository
         parent::__construct($registry, UserCours::class);
     }
 
-    //    /**
-    //     * @return UserCours[] Returns an array of UserCours objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('u')
-    //            ->andWhere('u.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('u.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
-
-    //    public function findOneBySomeField($value): ?UserCours
-    //    {
-    //        return $this->createQueryBuilder('u')
-    //            ->andWhere('u.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    /**
+     * Get courses for a specific user
+     *
+     * @param int $userId
+     * @return UserCours[]
+     */
+    public function findByUserWithCoursDetails(int $userId): array
+    {
+        return $this->createQueryBuilder('uc')
+            ->join('uc.cours', 'c')
+            ->addSelect('c') // Include course details
+            ->where('uc.user = :userId')
+            ->setParameter('userId', $userId)
+            ->orderBy('c.name', 'ASC') // Optional: Order by course name
+            ->getQuery()
+            ->getResult();
+    }
 }

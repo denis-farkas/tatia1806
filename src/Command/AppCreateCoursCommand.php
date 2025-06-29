@@ -40,6 +40,8 @@ class AppCreateCoursCommand extends Command
                 'schedule' => '10h15 à 11h',
                 'start_hour' => '10:15',
                 'end_hour' => '11:00',
+                'min_age' => 4,
+                'max_age' => 5,
             ],
             [
                 'name' => 'Eveil',
@@ -51,6 +53,8 @@ class AppCreateCoursCommand extends Command
                 'schedule' => '14h15 à 15h00',
                 'start_hour' => '14:15',
                 'end_hour' => '15:00',
+                'min_age' => 4,
+                'max_age' => 5,
             ],
             [
                 'name' => 'Initiation',
@@ -62,6 +66,8 @@ class AppCreateCoursCommand extends Command
                 'schedule' => '11h00 à 12h00',
                 'start_hour' => '11:00',
                 'end_hour' => '12:00',
+                'min_age' => 6,
+                'max_age' => 7,
             ],
             [
                 'name' => 'Initiation',
@@ -73,6 +79,8 @@ class AppCreateCoursCommand extends Command
                 'schedule' => '13h45 à 14h45',
                 'start_hour' => '13:45',
                 'end_hour' => '14:45',
+                'min_age' => 6,
+                'max_age' => 7,
             ],
             [
                 'name' => 'Initiation',
@@ -84,6 +92,8 @@ class AppCreateCoursCommand extends Command
                 'schedule' => '15h00 à 16h00',
                 'start_hour' => '15:00',
                 'end_hour' => '16:00',
+                'min_age' => 6,
+                'max_age' => 7,
             ],
             [
                 'name' => 'Classique',
@@ -95,6 +105,8 @@ class AppCreateCoursCommand extends Command
                 'schedule' => '14h45 à 15h45',
                 'start_hour' => '14:45',
                 'end_hour' => '15:45',
+                'min_age' => 8,
+                'max_age' => null,
             ],
             [
                 'name' => 'Classique',
@@ -106,6 +118,8 @@ class AppCreateCoursCommand extends Command
                 'schedule' => '16h00 à 17h15',
                 'start_hour' => '16:00',
                 'end_hour' => '17:15',
+                'min_age' => 13,
+                'max_age' => null,
             ],
             [
                 'name' => 'Contemporain',
@@ -117,6 +131,8 @@ class AppCreateCoursCommand extends Command
                 'schedule' => '15h45 à 16h45',
                 'start_hour' => '15:45',
                 'end_hour' => '16:45',
+                'min_age' => 8,
+                'max_age' => null,
             ],
             [
                 'name' => 'Contemporain',
@@ -128,6 +144,8 @@ class AppCreateCoursCommand extends Command
                 'schedule' => '17h15 à 18h30',
                 'start_hour' => '17:15',
                 'end_hour' => '18:30',
+                'min_age' => 13,
+                'max_age' => null,
             ],
         ];
 
@@ -141,7 +159,9 @@ class AppCreateCoursCommand extends Command
                 ->setDay($data['day'])
                 ->setSchedule($data['schedule'])
                 ->setStartHour(\DateTimeImmutable::createFromFormat('H:i', $data['start_hour']))
-                ->setEndHour(\DateTimeImmutable::createFromFormat('H:i', $data['end_hour']));
+                ->setEndHour(\DateTimeImmutable::createFromFormat('H:i', $data['end_hour']))
+                ->setMinAge($data['min_age'])
+                ->setMaxAge($data['max_age']);
             $this->entityManager->persist($cours);
         }
 

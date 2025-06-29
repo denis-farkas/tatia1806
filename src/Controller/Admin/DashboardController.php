@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\Attribute;
 use App\Entity\Cours;
 use App\Entity\Event;
 use App\Entity\Outfit;
@@ -9,6 +10,9 @@ use App\Entity\Product;
 use App\Entity\Professor;
 use App\Entity\Sponsor;
 use App\Entity\User;
+use App\Entity\Gala;
+use App\Entity\Order;
+use App\Entity\UserCours;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
@@ -54,11 +58,14 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToDashboard('Dashboard', 'fa fa-home');
         yield MenuItem::linkToCrud('Utilisateur', 'fas fa-list', User::class);
         yield MenuItem::linkToCrud('Cours', 'fas fa-list', Cours::class);
+        yield MenuItem::linkToCrud('Utilisateurs Cours', 'fas fa-list', UserCours::class);
         yield MenuItem::linkToCrud('Professeurs', 'fas fa-list', Professor::class);
         yield MenuItem::linkToCrud('Sponsors', 'fas fa-list', Sponsor::class);
         yield MenuItem::linkToCrud('Outfit', 'fas fa-list', Outfit::class);
+        yield MenuItem::linkToCrud('Attributs', 'fas fa-tags', Attribute::class);
         yield MenuItem::linkToCrud('Product', 'fas fa-list', Product::class);
         yield MenuItem::linkToCrud('Event', 'fas fa-list', Event::class);
-
+        yield MenuItem::linkToCrud('Gala', 'fas fa-list', Gala::class);
+        yield MenuItem::linkToCrud('Commandes', 'fas fa-list', Order::class);
     }
 }

@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Form\ChildrenUserType;
 use App\Form\PasswordUserType;
+use App\Repository\UserCoursRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -53,16 +54,18 @@ class AccountController extends AbstractController
     public function cours(): Response
     {
         $user = $this->getUser();
-        if (!$user) {
+
+        // Ensure the user is authenticated
+        if (!$user || !$user instanceof \App\Entity\User) {
             $this->addFlash('danger', 'Vous devez être connecté.');
             return $this->redirectToRoute('app_login');
         }
 
-        // À adapter selon ta logique métier pour récupérer les cours de l'utilisateur
-        // Exemple : $cours = $user->getCours(); ou via un repository
-        // Ici, on suppose que tu passes juste l'utilisateur à la vue
+        // Fetch courses for the logged-in user using the getUserCours method
+        $userCours = $user->getUserCours();
+        dump($userCours); // Debugging line, can be removed later
         return $this->render('account/cours.html.twig', [
-            'user' => $user,
+            'userCours' => $userCours,
         ]);
     }
 }

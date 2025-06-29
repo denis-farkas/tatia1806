@@ -81,20 +81,7 @@ class RegisterUserType extends AbstractType
             ],
             'invalid_message' => 'Les mots de passe ne correspondent pas',
             'mapped' => false,
-        ])
-        ->add('children', CollectionType::class, [
-            'entry_type' => ChildType::class,
-            'allow_add' => true,
-            'allow_delete' => true,
-            'by_reference' => false,
-            'required' => false,
-            'label' => 'Enfants à inscrire (optionnel)',
-        ])
-        ->add('submit', SubmitType::class, [
-            'label' => 'Inscription', 'attr' => ['class' => 'btn-inscrire btn ']
-        ])  
-
-        ;
+        ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -104,10 +91,13 @@ class RegisterUserType extends AbstractType
                 new UniqueEntity([
                     'entityClass' => User::class,
                     'fields' => ['email'],
-                'message' => 'Cette adresse email est déjà utilisée.'
-                    ])
-                ],
+                    'message' => 'Cette adresse email est déjà utilisée.'
+                ])
+            ],
             'data_class' => User::class,
+            'csrf_protection' => true,
+            'csrf_field_name' => '_token',
+            'csrf_token_id' => 'register_user',
         ]);
     }
 }

@@ -13,6 +13,10 @@
 
             <div class="col-xl-8 col-md-8 col-sm-12 mb-4">
                 <h5>Mes adresses</h5>
+                <p class="text-muted">Pour des raisons administratives nous vous demandons de déclarer une adresse. Vous pouvez ajouter, modifier ou supprimer vos adresses de facturation ou de livraison sur la page Compte.</p>
+
+                {% if app.user.addresses|length > 0 %}
+                    <ul class="list-group
 
                 {{ form_start(addressForm) }}
                     <div class="row">

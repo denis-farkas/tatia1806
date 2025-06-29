@@ -1,18 +1,40 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Page en cours de création{% endblock %}
+{% block title %}Nos Produits{% endblock %}
 
 {% block body %}
-<section class="container text-center py-5">
-  <div class="my-5 py-5">
-    <img src="{{ asset('build/images/header/Logo_sans_fond.png') }}" alt="Logo" style="max-width: 120px;" class="mb-4">
+<section class="container py-5">
+  <h1 class="text-center mb-5">Nos Produits</h1>
 
-    <h1 class="fw-light" style="color: #4a3e39;">Page en construction</h1>
-    <p class="text-muted mb-4">Cette page sera bientôt disponible. Merci pour votre patience !</p>
-
-    <a href="{{ path('app_home') }}" class="btn btn-outline-dark" style="border-color: #b98d75; color: #b98d75;">
-      ← Retour à l’accueil
-    </a>
+  <div class="row row-cols-1 row-cols-md-3 g-4">
+    {% for product in products %}
+      <div class="col">
+        <div class="card h-100">
+          <img src="{{ asset('uploads/products/' ~ product.image1) }}" class="card-img-top" alt="{{ product.name }}">
+          <div class="card-body">
+            <h5 class="card-title">{{ product.name }}</h5>
+            <p class="card-text">{{ product.description|slice(0, 100) ~ '...' }}</p>
+          </div>
+          <ul class="list-group list-group-flush">
+            {% for variant in product.variants %}
+              <li class="list-group-item">
+                <strong>Variante:</strong> 
+                {% for attribute in variant.attributes %}
+                  {{ attribute.name }}: {{ attribute.value }}
+                {% endfor %}
+                <br>
+                <strong>Prix:</strong> {{ product.price|number_format(2, ',', ' ') }} € <!-- Use product.price -->
+                <br>
+                <strong>Stock:</strong> {{ variant.quantity }}
+              </li>
+            {% endfor %}
+          </ul>
+          <div class="card-footer text-center">
+            <a href="{{ path('app_product_by_id', { id: product.id }) }}" class="btn bg-gold white">Voir le produit</a>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
   </div>
 </section>
 {% endblock %}

@@ -34,6 +34,15 @@ ul {
   border: 1px solid #b98d75;
 }
 
+.btn.btn-outline-gold {
+  color: #b98d75;
+  border: 1px solid #b98d75;
+}
+.btn.btn-outline-gold:hover {
+  background-color: #b98d75;
+  color: white;
+}
+
 .gold {
   color: #b98d75;
 }
@@ -210,6 +219,13 @@ footer .social-icons i:hover {
   padding: 1.25rem;
 }
 
+.card-img-top {
+  width: 97% !important;
+  height: auto;
+  margin: 0 auto;
+  border-radius: 12px;
+}
+
 .card {
   border-radius: 12px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -234,8 +250,6 @@ footer .social-icons i:hover {
 }
 
 .cart-items {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
   width: 75%;
 }
@@ -465,17 +479,17 @@ footer .social-icons i:hover {
 }
 
 .breadcrumb-item a {
-  color: #007bff;
+  color: #6c757d;
   text-decoration: none;
 }
 
 .breadcrumb-item a:hover {
-  color: #0056b3;
+  color: #b98d75;
   text-decoration: underline;
 }
 
 .breadcrumb-item.active {
-  color: #6c757d;
+  color: #b98d75;
 }
 
 /* Uniformisation des éléments de la section compacte */
@@ -494,6 +508,13 @@ footer .social-icons i:hover {
   color: white;
   border: 2px solid #28a745;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.order-section form {
+  display: flex;
+  align-items: center; /* Vertically align items */
+  justify-content: space-between; /* Push elements to the edges */
+  gap: 10px; /* Add spacing between the quantity selector and the button */
 }
 
 /* Conteneur du sélecteur de quantité */
@@ -516,26 +537,29 @@ footer .social-icons i:hover {
 
 /* Conteneur du sélecteur de quantité */
 .order-section .quantity-selector .input-group {
-  height: 60px; /* Hauteur uniforme pour tout le conteneur */
-  width: 180px;
-  border: 2px solid #6c757d;
+  height: 40px; /* Reduced height */
+  width: 160px; /* Total width: 40px (button) + 80px (input) + 40px (button) */
+  border: 1px solid #b98d75;
   border-radius: 8px;
   overflow: hidden;
   background: white;
   display: flex;
-  align-items: stretch; /* Étire les enfants pour qu'ils occupent toute la hauteur */
+  align-items: center;
   justify-content: space-between;
+  margin: 0; /* Remove any unintended margins */
+  padding: 0;
+  flex-wrap: nowrap;
 }
 
 .order-section .btn-outline-secondary {
-  flex: 0 0 50px; /* Largeur fixe */
-  height: 60px; /* Hauteur fixe */
+  flex: 0 0 40px; /* Fixed width for buttons */
+  height: 40px; /* Fixed height */
   display: flex;
   align-items: center; /* Centre verticalement l'icône */
   justify-content: center; /* Centre horizontalement l'icône */
-  background-color: #6c757d; /* Couleur gris */
+  background-color: #b98d75; /* Couleur gris */
   color: white;
-  font-size: 1rem; /* Taille de l'icône */
+  font-size: 0.9rem; /* Slightly smaller font size */
   font-weight: 600;
   border: none; /* Supprime les bordures par défaut */
   padding: 0; /* Supprime les marges internes */
@@ -545,59 +569,26 @@ footer .social-icons i:hover {
 }
 
 .order-section .btn-outline-secondary:hover {
-  background-color: #545b62;
-  transform: none; /* Supprime tout effet de transformation */
-}
-
-/* Surcharge des styles Bootstrap */
-.input-group .btn {
-  padding: 0 !important; /* Supprime le padding imposé par Bootstrap */
-  height: 60px !important; /* Force la hauteur à 60px */
-  line-height: 1 !important; /* Supprime tout décalage vertical */
-  box-sizing: border-box !important; /* Assure que la hauteur inclut les bordures */
+  background-color: white;
+  color: #b98d75;
+  border: 1px solid #b98d75;
 }
 
 .order-section .quantity-selector .input-group > .form-control {
-  flex: 1 0 auto !important; /* Remplace le comportement par défaut de Bootstrap */
-  width: auto !important; /* Supprime la largeur forcée */
-  min-width: 0 !important; /* Supprime la contrainte de largeur minimale */
-  height: 100% !important; /* Assure que l'input occupe toute la hauteur du conteneur */
-  display: flex !important; /* Transforme l'input en conteneur flex */
-  align-items: center !important; /* Centre verticalement le texte */
-  justify-content: center !important; /* Centre horizontalement le texte */
-  padding: 0 !important; /* Supprime les marges internes */
-  border: none !important; /* Supprime les bordures par défaut */
-  text-align: center !important; /* Centre le texte horizontalement */
-  font-size: 1rem !important; /* Taille de police uniforme */
-  font-weight: 600 !important; /* Poids de police uniforme */
-  background: white !important; /* Couleur de fond */
-  color: #495057 !important; /* Couleur du texte */
-  outline: none !important; /* Supprime les contours */
-  border-left: 1px solid #6c757d !important; /* Bordure gauche */
-  border-right: 1px solid #6c757d !important; /* Bordure droite */
-}
-
-/* Bouton "Ajouter au panier" */
-.order-section .btn-primary {
-  height: 60px;
-  width: 180px;
-  font-size: 1rem;
+  height: 40px; /* Reduced height */
+  width: 80px; /* Double the button width */
+  flex: 0 0 auto;
+  text-align: center;
+  font-size: 0.9rem; /* Slightly smaller font size */
   font-weight: 600;
-  border-radius: 8px;
-  background-color: #007bff; /* Couleur primary */
-  color: white;
-  border: 2px solid #007bff;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-}
-
-.order-section .btn-primary:hover {
-  background-color: #0056b3;
-  border-color: #0056b3;
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+  border: none;
+  border-left: 1px solid #b98d75;
+  border-right: 1px solid #b98d75;
+  background: white;
+  color: #495057;
+  outline: none;
+  padding: 0;
+  margin: 0;
 }
 
 /* Supprimer les flèches du input number */
@@ -617,5 +608,46 @@ footer .social-icons i:hover {
   .btn-primary,
   .quantity-selector .input-group {
     width: 100%;
+  }
+}
+
+.custom-age-alert {
+  background-color: #f8d7da; /* Light red background */
+  color: #721c24; /* Dark red text */
+  border: 1px solid #f5c6cb; /* Red border */
+  border-radius: 8px; /* Rounded corners */
+  padding: 10px 15px; /* Padding inside the alert */
+  font-weight: bold; /* Bold text */
+  margin-bottom: 10px; /* Space below the alert */
+  display: inline-block; /* Inline-block for compact display */
+}
+
+/* Default behavior for IMG1 (desktop and tablet) */
+.img1-responsive {
+  position: absolute;
+  bottom: -70px;
+  right: -30px;
+  width: 60%;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  z-index: 2;
+}
+
+.text-container {
+  height: 300px;
+}
+
+/* Responsive behavior for small screens */
+@media (max-width: 768px) {
+  .img1-responsive {
+    position: static; /* Remove absolute positioning */
+    margin-top: 20px; /* Add spacing above the image */
+    width: 100%; /* Full width */
+    box-shadow: none; /* Remove shadow for simplicity */
+    margin-bottom: 50px;
+  }
+
+  .text-container {
+    height: auto; /* Allow the container to adjust its height */
   }
 }

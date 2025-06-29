@@ -11,7 +11,7 @@
   </div>
 
   <div class="text-center mb-5">
-    <h2><i>Les inscriptions de ne sont pas encore ouvertes.</i></h2>
+    <h2><i>Les inscriptions ne sont pas encore ouvertes.</i></h2>
   </div>
 
   {% for type, coursList in coursParType %}
@@ -42,13 +42,33 @@
               </div>
               <div class="card-footer">
                 {% if app.user %}
-                    <a href="{{ path('app_cours_by_id', {id: cours.id}) }}" class="btn btn-outline-success mt-3">
+                  {% if subscriptions[cours.id] is defined %}
+                    <button type="button" class="btn bg-gold white mt-3" disabled>
+                      Inscrit(e) ({{ subscriptions[cours.id] }})
+                    </button>
+                    <a href="{{ path('app_cours_by_id', {id: cours.id}) }}" class="btn btn-outline-gold mt-3">
+                        Inscrire un autre membre
+                      </a>
+
+                  {% elseif subscriptions[cours.id] is not defined %}
+                    {% if is_granted('ROLE_GUEST') %}
+                      <div class="alert alert-info small mt-3">
+                        Attendre la confirmation de l'inscription par l'administration.
+                      </div>
+                    {% elseif is_granted('ROLE_USER') or is_granted('ROLE_ADMIN') %}
+                      <a href="{{ path('app_cours_by_id', {id: cours.id}) }}" class="btn btn-outline-gold mt-3">
                         Inscription
-                    </a>
+                      </a>
+                    {% else %}
+                      <div class="alert alert-warning small mt-3">
+                        Vous n'avez pas les droits nécessaires pour vous inscrire.
+                      </div>
+                    {% endif %}
+                  {% endif %}
                 {% else %}
-                    <a href="{{ path('app_login') }}" class="btn btn-outline-primary mt-3">
-                        Se connecter pour s'inscrire
-                    </a>
+                  <a href="{{ path('app_login') }}" class="btn btn-outline-primary mt-3">
+                    Se connecter pour s'inscrire
+                  </a>
                 {% endif %}
               </div>
             </div>

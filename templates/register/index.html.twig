@@ -5,7 +5,7 @@
 <div class="form-container ">
     <div class="col-md-6 offset-md-3 form-wrapper">
         
-        {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+        {{ form_start(form) }}
          <div class="form-group">
                 {{ form_label(form.lastname) }}
                 {{ form_widget(form.lastname, {'attr': {'class': 'form-control'}}) }}
@@ -42,7 +42,7 @@
                     <i class="fas fa-user-plus me-2"></i>
                     S'inscrire
             </button>
-
+        {{ form_end(form) }}
     </div>
 </div>
 {% endblock %}

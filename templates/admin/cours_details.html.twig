@@ -1,0 +1,8 @@
+{# filepath: templates/admin/cours_details.html.twig #}
+{% if field.value is not empty %}
+    <div class="cours-details">
+        {{ field.value|raw }}
+    </div>
+{% else %}
+    <p>No details available.</p>
+{% endif %}

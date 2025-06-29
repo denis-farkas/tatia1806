@@ -22,7 +22,7 @@ class PaymentController extends AbstractController
     }
 
     #[Route('/commande/paiement/{id_order}', name: 'app_payment')]
-    public function index($id_order, OrderRepository $orderRepository, EntityManagerInterface $entityManager): Response
+    public function index($id_order, Request $request, OrderRepository $orderRepository, EntityManagerInterface $entityManager): Response
     {
         Stripe::setApiKey($_ENV['STRIPE_SECRET_KEY']);
 
@@ -35,22 +35,29 @@ class PaymentController extends AbstractController
             return $this->redirectToRoute('app_home');
         }
 
-        // Vérifier la disponibilité du stock avant le paiement
+        // Retrieve the shipping cost from the request
+        $shippingCost = $request->query->get('shipping', 0);
+
+        // Verify stock availability
         $unavailableProducts = [];
         foreach ($order->getOrderDetails() as $orderDetail) {
-            $product = $entityManager->getRepository(\App\Entity\Product::class)
-                ->findOneBy(['name' => $orderDetail->getProductName()]);
-            
-            if ($product && $product->getAvailableQuantity() < $orderDetail->getProductQuantity()) {
-                $unavailableProducts[] = [
-                    'name' => $product->getName(),
-                    'requested' => $orderDetail->getProductQuantity(),
-                    'available' => $product->getAvailableQuantity()
-                ];
+            if ($orderDetail->getProductIllustration() === 'cours_image.jpg') {
+                continue; // Skip stock check for courses
+            }
+
+            if ($orderDetail->getProductIllustration() !== $orderDetail->getProductName()) {
+                $variant = $entityManager->getRepository(\App\Entity\ProductVariant::class)
+                    ->find($orderDetail->getProductId());
+                if ($variant && $variant->getAvailableQuantity() < $orderDetail->getProductQuantity()) {
+                    $unavailableProducts[] = [
+                        'name' => $variant->getProduct()->getName(),
+                        'requested' => $orderDetail->getProductQuantity(),
+                        'available' => $variant->getAvailableQuantity()
+                    ];
+                }
             }
         }
 
-        // Si stock insuffisant, rediriger avec erreur
         if (!empty($unavailableProducts)) {
             foreach ($unavailableProducts as $unavailable) {
                 $this->addFlash('error', sprintf(
@@ -63,35 +70,60 @@ class PaymentController extends AbstractController
             return $this->redirectToRoute('cart');
         }
 
-        // Réserver le stock pendant le processus de paiement
+        // Reserve stock
         $this->reserveStockForOrder($order, $entityManager);
 
         $products_for_stripe = [];
 
         foreach ($order->getOrderDetails() as $orderDetail) {
-            // If you have a way to distinguish cours from products, use it here.
-            // For example, if cours have a specific illustration or a flag:
-            $isCours = $orderDetail->getProductIllustration() === 'cours_image.jpg'; // or another logic
-        
+            $isCours = $orderDetail->getProductIllustration() === 'cours_image.jpg';
+
+            // Format options as a string
+            $optionsString = '';
+            if (!empty($orderDetail->getOptions())) {
+                $optionsString = ' (' . implode(', ', array_map(
+                    fn($option) => ucfirst($option['name']) . ': ' . $option['value'],
+                    $orderDetail->getOptions()
+                )) . ')';
+            }
+
+            // Add product to Stripe line items
             $products_for_stripe[] = [
                 'price_data' => [
                     'currency' => 'eur',
                     'unit_amount' => number_format($orderDetail->getProductPrice() * 100, 0, '', ''),
                     'product_data' => [
-                        'name' => $orderDetail->getProductName() . ($isCours ? ' (Cours)' : ''),
+                        'name' => $orderDetail->getProductName() . $optionsString . ($isCours ? ' (Cours)' : ''),
                         'images' => [
-                            $_ENV['DOMAIN'].'/build/images/'.
+                            $_ENV['DOMAIN'] . '/uploads/products/' .
                             ($isCours ? 'cours_image.jpg' : $orderDetail->getProductIllustration())
-                        ]
-                    ]
+                        ],
+                        'metadata' => [
+                            'requires_shipping' => $isCours ? 'false' : 'true',
+                        ],
+                    ],
                 ],
                 'quantity' => $orderDetail->getProductQuantity(),
             ];
         }
 
+        // Add shipping cost as a separate line item
+        if ($shippingCost > 0) {
+            $products_for_stripe[] = [
+                'price_data' => [
+                    'currency' => 'eur',
+                    'unit_amount' => number_format($shippingCost * 100, 0, '', ''),
+                    'product_data' => [
+                        'name' => 'Frais de livraison',
+                    ],
+                ],
+                'quantity' => 1,
+            ];
+        }
+
         /** @var User $user */
         $user = $this->getUser();
-        
+
         $checkout_session = Session::create([
             'customer_email' => $user->getEmail(),
             'line_items' => $products_for_stripe,
@@ -107,13 +139,17 @@ class PaymentController extends AbstractController
     }
 
     #[Route('/commande/merci/{stripe_session_id}', name: 'app_payment_success')]
-    public function success($stripe_session_id, OrderRepository $orderRepository, EntityManagerInterface $entityManager, Cart $cart, Request $request): Response
-    {
+    public function success(
+        $stripe_session_id,
+        OrderRepository $orderRepository,
+        EntityManagerInterface $entityManager,
+        Cart $cart
+    ): Response {
         $user = $this->getUser();
-        if (!$user) {
-            throw new \LogicException('User is not authenticated.');
+        if (!$user || !$user instanceof \App\Entity\User) {
+            $this->addFlash('danger', 'Vous devez être connecté.');
+            return $this->redirectToRoute('app_login');
         }
-
         $order = $orderRepository->findOneBy([
             'stripe_session_id' => $stripe_session_id,
             'user' => $user
@@ -124,38 +160,31 @@ class PaymentController extends AbstractController
         }
 
         if ($order->getState() == 1) {
+            // Confirm stock for physical products
+            $this->confirmStockForOrder($order, $entityManager);
 
-            // For each OrderDetail, check if it's a cours and add to user
-        foreach ($order->getOrderDetails() as $orderDetail) {
-            // Check if it's a cours based on illustration
-            if ($orderDetail->getProductIllustration() === 'cours_image.jpg') {
-                // Find the Cours entity by ID
-                $cours = $entityManager->getRepository(\App\Entity\Cours::class)
-                    ->find($orderDetail->getProductId());
-                
-                if ($cours) {
-                    // Create UserCours entity to link user and cours
-                    $userCours = new \App\Entity\UserCours();
-                    $userCours->setCours($cours);
-                    $userCours->setUser($user);
-                    
-                    // Set child info if available in orderDetail
-                    if (method_exists($orderDetail, 'getChildFirstname') && 
-                        $orderDetail->getChildFirstname()) {
-                        $userCours->setFirstname($orderDetail->getChildFirstname());
+            // Persist courses in the user_cours table
+            foreach ($order->getOrderDetails() as $orderDetail) {
+                if ($orderDetail->getProductIllustration() === 'cours_image.jpg') {
+                    // Find the course entity
+                    $cours = $entityManager->getRepository(\App\Entity\Cours::class)
+                        ->find($orderDetail->getProductId());
+
+                    if ($cours) {
+                        // Create a new UserCours entity
+                        $userCours = new \App\Entity\UserCours();
+                        $userCours->setUser($user);
+                        $userCours->setCours($cours);
+                        $userCours->setFirstname($user->getFirstname()); // Or another field if needed
                         $userCours->setCreatedAt(new \DateTimeImmutable());
-                        
+
+                        // Persist the UserCours entity
+                        $entityManager->persist($userCours);
                     }
-                    
-                    $entityManager->persist($userCours);
                 }
             }
-        }
 
-
-            // Paiement réussi : confirmer la vente et déduire le stock définitivement
-            $this->confirmStockForOrder($order, $entityManager);
-            
+            // Update the order state to "Paid"
             $order->setState(2);
             $cart->reset();
             $entityManager->flush();
@@ -167,7 +196,7 @@ class PaymentController extends AbstractController
     }
 
     #[Route('/commande/annulation/{stripe_session_id}', name: 'app_payment_cancel')]
-    public function cancel($stripe_session_id, OrderRepository $orderRepository, EntityManagerInterface $entityManager, Request $request): Response
+    public function cancel($stripe_session_id, OrderRepository $orderRepository, EntityManagerInterface $entityManager): Response
     {
         $user = $this->getUser();
         if ($user) {
@@ -192,14 +221,18 @@ class PaymentController extends AbstractController
     private function reserveStockForOrder(Order $order, EntityManagerInterface $entityManager): void
     {
         foreach ($order->getOrderDetails() as $orderDetail) {
-            $product = $entityManager->getRepository(\App\Entity\Product::class)
-                ->findOneBy(['name' => $orderDetail->getProductName()]);
-            
-            if ($product) {
-                $this->stockManager->reserveStock(
-                    $product, 
-                    $orderDetail->getProductQuantity()
-                );
+            if ($orderDetail->getProductIllustration() === 'cours_image.jpg') {
+                // Skip stock reservation for cours
+                continue;
+            }
+
+            if ($orderDetail->getProductIllustration() !== $orderDetail->getProductName()) {
+                // Handle ProductVariant
+                $variant = $entityManager->getRepository(\App\Entity\ProductVariant::class)
+                    ->find($orderDetail->getProductId());
+                if ($variant) {
+                    $this->stockManager->reserveStock($variant, $orderDetail->getProductQuantity());
+                }
             }
         }
     }
@@ -207,14 +240,18 @@ class PaymentController extends AbstractController
     private function confirmStockForOrder(Order $order, EntityManagerInterface $entityManager): void
     {
         foreach ($order->getOrderDetails() as $orderDetail) {
-            $product = $entityManager->getRepository(\App\Entity\Product::class)
-                ->findOneBy(['name' => $orderDetail->getProductName()]);
-            
-            if ($product) {
-                $this->stockManager->releaseStock(
-                    $product, 
-                    $orderDetail->getProductQuantity()
-                );
+            if ($orderDetail->getProductIllustration() === 'cours_image.jpg') {
+                // Skip stock confirmation for cours
+                continue;
+            }
+
+            if ($orderDetail->getProductIllustration() !== $orderDetail->getProductName()) {
+                // Handle ProductVariant
+                $variant = $entityManager->getRepository(\App\Entity\ProductVariant::class)
+                    ->find($orderDetail->getProductId());
+                if ($variant) {
+                    $this->stockManager->confirmStock($variant, $orderDetail->getProductQuantity());
+                }
             }
         }
     }
@@ -222,14 +259,18 @@ class PaymentController extends AbstractController
     private function releaseReservedStockForOrder(Order $order, EntityManagerInterface $entityManager): void
     {
         foreach ($order->getOrderDetails() as $orderDetail) {
-            $product = $entityManager->getRepository(\App\Entity\Product::class)
-                ->findOneBy(['name' => $orderDetail->getProductName()]);
-            
-            if ($product && $product->getStock()) {
-                $stock = $product->getStock();
-                $stock->setReserved(max(0, $stock->getReserved() - $orderDetail->getProductQuantity()));
-                $stock->setUpdatedAt(new \DateTimeImmutable());
-                $entityManager->flush();
+            if ($orderDetail->getProductIllustration() === 'cours_image.jpg') {
+                // Skip stock release for cours
+                continue;
+            }
+
+            if ($orderDetail->getProductIllustration() !== $orderDetail->getProductName()) {
+                // Handle ProductVariant
+                $variant = $entityManager->getRepository(\App\Entity\ProductVariant::class)
+                    ->find($orderDetail->getProductId());
+                if ($variant) {
+                    $this->stockManager->releaseStock($variant, $orderDetail->getProductQuantity());
+                }
             }
         }
     }

@@ -15,9 +15,9 @@ class StockMovement
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(targetEntity: ProductVariant::class)]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Product $product = null;
+    private ?ProductVariant $variant = null;
 
     #[ORM\Column(type: 'string', enumType: MovementType::class)]
     private ?MovementType $type = null;
@@ -34,19 +34,22 @@ class StockMovement
     #[ORM\ManyToOne]
     private ?User $createdBy = null;
 
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $options = null;
+
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getProduct(): ?Product
+    public function getVariant(): ?ProductVariant
     {
-        return $this->product;
+        return $this->variant;
     }
 
-    public function setProduct(?Product $product): static
+    public function setVariant(?ProductVariant $variant): static
     {
-        $this->product = $product;
+        $this->variant = $variant;
         return $this;
     }
 
@@ -103,5 +106,29 @@ class StockMovement
     {
         $this->createdBy = $createdBy;
         return $this;
+    }
+
+    public function getOptions(): ?array
+    {
+        return $this->options;
+    }
+
+    public function setOptions(?array $options): static
+    {
+        $this->options = $options;
+        return $this;
+    }
+
+    public function getOptionsAsString(): string
+    {
+        if (empty($this->options)) {
+            return 'Default';
+        }
+
+        return implode(', ', array_map(
+            fn($key, $value) => ucfirst($key) . ': ' . $value,
+            array_keys($this->options),
+            $this->options
+        ));
     }
 }

@@ -8,51 +8,89 @@
             <div class="bg-light p-3">
                 <strong>Contenu de mon panier</strong><br/>
 
-                {# Produits physiques #}
-                {% for product in cart %}
-                    <div class="row mt-2">
-                        <div class="col-md-2">
-                            <img src="{{ asset('build/images/' ~ product.object.image1) }}" class="img-fluid" alt="{{ product.object.name }}">
+                {# Produits physiques (cart) #}
+                {% if cart|length > 0 %}
+                    <h3>Produits</h3>
+                    {% for item in cart %}
+                        <div class="row mt-2">
+                            <div class="col-md-2">
+                                {% if item.variant.product.image1 is defined %}
+                                    <img src="{{ asset('uploads/products/' ~ item.variant.product.image1) }}" class="img-fluid" alt="{{ item.variant.product.name }}">
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>{{ item.variant.product.name }}</strong>
+                                {% if item.attributes|default([]) is not empty %}
+                                    <br><small>Options:</small>
+                                    <ul>
+                                        {% for attribute in item.attributes %}
+                                            <li>{{ attribute.name }}: {{ attribute.value }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                                <span class="d-block small">Prix unitaire : {{ item.price|number_format(2, ',', ' ') }} €</span>
+                            </div>
+                            <div class="col-md-2 text-right">
+                                <span class="badge text-bg-secondary">x{{ item.qty }}</span>
+                            </div>
+                            <div class="col-md-2">
+                                <strong>{{ (item.qty * item.price)|number_format(2, ',', ' ') }} €</strong>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <strong>{{ product.object.name }}</strong>
-                            <span class="d-block small">Prix unitaire : {{ product.object.price|number_format(2, ',', ' ') }} €</span>
-                        </div>
-                        <div class="col-md-2 text-right">
-                            <span class="badge text-bg-secondary">x{{ product.qty }}</span>
-                        </div>
-                        <div class="col-md-2">
-                            <strong>{{ (product.qty * product.object.price)|number_format(2, ',', ' ') }} €</strong>
-                        </div>
-                    </div>
-                {% endfor %}
+                    {% endfor %}
+                {% endif %}
 
-                {# Cours #}
-                {% for item in cours_cart %}
-                    <div class="row mt-2">
-                        <div class="col-md-2">
-                            <img src="{{ asset('build/images/cours_image.jpg') }}" class="img-fluid" alt="{{ item.cours.name }}">
+                {# Images (images_cart) #}
+                {% if images_cart|length > 0 %}
+                    <h3>Images</h3>
+                    {% for item in images_cart %}
+                        <div class="row mt-2">
+                            <div class="col-md-2">
+                                <img src="{{ asset('images/galas/' ~ item.image.filename) }}" class="img-fluid" alt="{{ item.image.filename }}">
+                            </div>
+                            <div class="col-md-6">
+                                <strong>{{ item.image.filename }}</strong>
+                                <span class="d-block small">Prix unitaire : {{ item.image.price|number_format(2, ',', ' ') }} €</span>
+                            </div>
+                            <div class="col-md-2 text-right">
+                                <span class="badge text-bg-secondary">x{{ item.qty }}</span>
+                            </div>
+                            <div class="col-md-2">
+                                <strong>{{ (item.qty * item.image.price)|number_format(2, ',', ' ') }} €</strong>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <strong>{{ item.cours.name }}</strong>
-                            <span class="d-block small">Pour : {{ item.child_firstname }} {{ item.child_lastname }}</span>
-                            <span class="d-block small">Jour : {{ item.cours.day }}</span>
-                            <span class="d-block small">
-                                Horaire : {{ item.cours.startHour ? item.cours.startHour|date('H:i') : '' }} - {{ item.cours.endHour ? item.cours.endHour|date('H:i') : '' }}
-                            </span>
+                    {% endfor %}
+                {% endif %}
+
+                {# Cours (cours_cart) #}
+                {% if cours_cart|length > 0 %}
+                    <h3>Cours</h3>
+                    {% for item in cours_cart %}
+                        <div class="row mt-2">
+                            <div class="col-md-2">
+                                <img src="{{ asset('build/images/cours_image.jpg') }}" class="img-fluid" alt="{{ item.cours.name }}">
+                            </div>
+                            <div class="col-md-6">
+                                <strong>{{ item.cours.name }}</strong>
+                                <span class="d-block small">Pour : {{ item.child_firstname }} {{ item.child_lastname }}</span>
+                                <span class="d-block small">Jour : {{ item.cours.day }}</span>
+                                <span class="d-block small">
+                                    Horaire : {{ item.cours.startHour ? item.cours.startHour|date('H:i') : '' }} - {{ item.cours.endHour ? item.cours.endHour|date('H:i') : '' }}
+                                </span>
+                            </div>
+                            <div class="col-md-2 text-right">
+                                <span class="badge text-bg-secondary">x{{ item.quantity }}</span>
+                            </div>
+                            <div class="col-md-2">
+                                <strong>{{ (item.quantity * item.cours.price)|number_format(2, ',', ' ') }} €</strong>
+                            </div>
                         </div>
-                        <div class="col-md-2 text-right">
-                            <span class="badge text-bg-secondary">x{{ item.quantity }}</span>
-                        </div>
-                        <div class="col-md-2">
-                            <strong>{{ (item.quantity * item.cours.price)|number_format(2, ',', ' ') }} €</strong>
-                        </div>
-                    </div>
-                {% endfor %}
+                    {% endfor %}
+                {% endif %}
             </div>
 
             <div class="bg-light p-3 my-3">
-                <strong>Votre adresse de livraison :</strong><br/>
+                <strong>Votre adresse :</strong><br/>
                 {{ choices.addresses.firstname }} {{ choices.addresses.lastname }}<br/>
                 {{ choices.addresses.address }}<br/>
                 {{ choices.addresses.city }} - {{ choices.addresses.country }}
@@ -61,7 +99,7 @@
 
         <div class="col-md-4 ">
             <div class="bg-light p-3">
-                <div class="d-flex  justify-content-between">
+                <div class="d-flex justify-content-between">
                     <span class="fw-bold">Total produit</span>
                     <span>{{ totalQuantity }}</span>
                 </div>
@@ -71,7 +109,7 @@
                     <p class="cart-final-total">Total <span>{{ totals.total|number_format(2, ',', ' ') }} €</span></p>
                 </div>
                 <div>
-                    <a href="{{ path('app_payment', { 'id_order' : order.id }) }}" class="btn btn-success w-100 mt-3">Payer</a>
+                    <a href="{{ path('app_payment', { 'id_order': order.id, 'shipping': totals.shipping }) }}" class="btn btn-success w-100 mt-3">Payer</a>
                 </div>
             </div>
         </div>

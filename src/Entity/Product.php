@@ -28,7 +28,7 @@ class Product
     #[ORM\Column(length: 255)]
     private ?string $image1 = null;
 
-    #[ORM\Column(length: 255, nullable: true)]  // Ajout de nullable: true
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $image2 = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
@@ -46,25 +46,15 @@ class Product
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
-    
-
-    /**
-     * @var Collection<int, StockMovement>
-     */
-    #[ORM\OneToMany(targetEntity: StockMovement::class, mappedBy: 'product')]
-    private Collection $stockMovements;
-
-    #[ORM\OneToOne(mappedBy: 'product', cascade: ['persist', 'remove'])]
-    private ?Stock $stock = null;
+    #[ORM\OneToMany(mappedBy: 'product', targetEntity: ProductVariant::class, cascade: ['persist', 'remove'])]
+    private Collection $variants;
 
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
-        $this->stockMovements = new ArrayCollection();
+        $this->variants = new ArrayCollection();
     }
-
-    // ... existing getters and setters ...
 
     public function getId(): ?int
     {
@@ -93,6 +83,11 @@ class Product
         return $this;
     }
 
+    public function getImage1File(): ?File
+    {
+        return $this->image1File;
+    }
+
     public function setImage1File(?File $image1File = null): void
     {
         $this->image1File = $image1File;
@@ -100,11 +95,6 @@ class Product
         if (null !== $image1File) {
             $this->updatedAt = new \DateTimeImmutable();
         }
-    }
-
-    public function getImage1File(): ?File
-    {
-        return $this->image1File;
     }
 
     public function setImage1(?string $image1): static
@@ -132,7 +122,7 @@ class Product
         return $this->image2File;
     }
 
-    public function setImage2(?string $image2): static  // Nullable parameter
+    public function setImage2(?string $image2): static
     {
         $this->image2 = $image2;
         return $this;
@@ -176,85 +166,30 @@ class Product
         return $this;
     }
 
-    
-
-    /**
-     * @return Collection<int, StockMovement>
-     */
-    public function getStockMovements(): Collection
+    public function getVariants(): Collection
     {
-        return $this->stockMovements;
+        return $this->variants;
     }
 
-    public function addStockMovement(StockMovement $stockMovement): static
+    public function addVariant(ProductVariant $variant): static
     {
-        if (!$this->stockMovements->contains($stockMovement)) {
-            $this->stockMovements->add($stockMovement);
-            $stockMovement->setProduct($this);
+        if (!$this->variants->contains($variant)) {
+            $this->variants->add($variant);
+            $variant->setProduct($this);
         }
 
         return $this;
     }
 
-    public function removeStockMovement(StockMovement $stockMovement): static
+    public function removeVariant(ProductVariant $variant): static
     {
-        if ($this->stockMovements->removeElement($stockMovement)) {
-            if ($stockMovement->getProduct() === $this) {
-                $stockMovement->setProduct(null);
+        if ($this->variants->removeElement($variant)) {
+            if ($variant->getProduct() === $this) {
+                $variant->setProduct(null);
             }
         }
 
         return $this;
-    }
-
-    public function getStock(): ?Stock
-    {
-        return $this->stock;
-    }
-
-    public function setStock(?Stock $stock): static  // Nullable parameter
-    {
-        if ($stock === null && $this->stock !== null) {
-            $this->stock->setProduct($this);
-        }
-
-        if ($stock !== null && $stock->getProduct() !== $this) {
-            $stock->setProduct($this);
-        }
-
-        $this->stock = $stock;
-        return $this;
-    }
-
-    public function isInStock(): bool
-    {
-        return $this->stock ? $this->stock->isInStock() : false;
-    }
-
-    public function getAvailableQuantity(): int
-    {
-        return $this->stock ? $this->stock->getAvailableQuantity() : 0;
-    }
-
-    public function isLowStock(): bool
-    {
-        return $this->stock ? $this->stock->isLowStock() : false;
-    }
-
-    // Méthodes pour EasyAdmin
-    public function getStockQuantity(): ?int
-    {
-        return $this->stock ? $this->stock->getQuantity() : null;
-    }
-
-    public function getStockMinQuantity(): ?int
-    {
-        return $this->stock ? $this->stock->getMinQuantity() : null;
-    }
-
-    public function isStockActive(): ?bool
-    {
-        return $this->stock ? $this->stock->isActive() : null;
     }
 
     public function __toString(): string

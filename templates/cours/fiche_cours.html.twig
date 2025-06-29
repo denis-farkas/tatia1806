@@ -63,26 +63,59 @@
         <div class="row mt-4">
             <div class="col-12">
                 <div class="order-section" style="background: #f8f9fa; border-radius: 8px; padding: 25px; border: 1px solid #dee2e6;">
-                    <form action="{{ path('add_cours_to_cart', {id: cours.id, redirect_to: app.request.uri}) }}" method="POST" class="order-form">
-                        <div class="row align-items-center g-3">
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold mb-2">Inscrire pour :</label>
-                                <select name="child" class="form-select" required>
-                                    <option value="">Sélectionnez votre enfant ou vous-même</option>
-                                    {% for child in app.user ? app.user.children : [] %}
-                                        <option value="{{ child.id }}">{{ child.firstname }} {{ child.lastname }}</option>
-                                    {% endfor %}
-                                    <option value="parent">Moi-même ({{ app.user.firstname ~ ' ' ~ app.user.lastname }})</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 mt-5">
-                                <button type="submit" class="btn bg-gold white ">
-                                    <i class="fas fa-user-plus me-2"></i>
-                                    Inscrire à ce cours
-                                </button>
-                            </div>
+                    {% if isSubscribed %}
+                        <div class="alert alert-success">
+                            {{ subscriptionMessage }}
                         </div>
-                    </form>
+                    {% endif %}
+
+                    {% for child in app.user ? app.user.children : [] %}
+                        <div class="mb-3">
+                            {% if subscribedChildren[child.id] is defined %}
+                                <div class="alert alert-success">
+                                    {{ child.firstname }} est déjà inscrit(e) à ce cours.
+                                </div>
+                            {% elseif ineligibleChildren[child.id] is defined %}
+                                <div class="alert alert-danger custom-age-alert">
+                                    {{ child.firstname }} n'a pas l'âge requis.
+                                </div>
+                            {% else %}
+                                <form action="{{ path('add_cours_to_cart', {id: cours.id, redirect_to: app.request.uri}) }}" method="POST" class="order-form">
+                                    <input type="hidden" name="child" value="{{ child.id }}">
+                                    <div class="row align-items-center g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-semibold mb-2">Inscrire pour :</label>
+                                            <span>{{ child.firstname }} {{ child.lastname }}</span>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <button type="submit" class="btn bg-gold white">
+                                                <i class="fas fa-user-plus me-2"></i>
+                                                Inscrire {{ child.firstname }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
+                    {% if not isSubscribed and (cours.maxAge is null or cours.maxAge >= 18) %}
+                        <form action="{{ path('add_cours_to_cart', {id: cours.id, redirect_to: app.request.uri}) }}" method="POST" class="order-form">
+                            <input type="hidden" name="child" value="parent">
+                            <div class="row align-items-center g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold mb-2">Inscrire pour :</label>
+                                    <span>Moi-même ({{ app.user.firstname ~ ' ' ~ app.user.lastname }})</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <button type="submit" class="btn bg-gold white">
+                                        <i class="fas fa-user-plus me-2"></i>
+                                        Inscrire à ce cours
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    {% endif %}
                 </div>
             </div>
         </div>

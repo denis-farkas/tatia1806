@@ -25,7 +25,7 @@ class Order
     #[ORM\Column(length: 255)]
     private ?string $delivery = null;
 
-    #[ORM\ManyToOne(inversedBy: 'orders')]
+    #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
 
@@ -38,7 +38,7 @@ class Order
     /**
      * @var Collection<int, OrderDetail>
      */
-    #[ORM\OneToMany(targetEntity: OrderDetail::class, mappedBy: 'myOrder')]
+    #[ORM\OneToMany(mappedBy: 'myOrder', targetEntity: OrderDetail::class, cascade: ['remove'], orphanRemoval: true)]
     private Collection $orderDetails;
 
     public function __construct()

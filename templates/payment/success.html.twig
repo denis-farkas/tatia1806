@@ -44,7 +44,17 @@
                                 <img src="/build/images/boutique/{{ detail.productIllustration }}" width="100px" alt="">
                             {% endif %}
                         </td>
-                        <td>{{ detail.productName }}</td>
+                        <td>
+                            {{ detail.productName }}
+                            {% if detail.options|default([]) is not empty %}
+                                <p><small>Options:</small></p>
+                                <ul>
+                                    {% for option in detail.options %}
+                                        <li>{{ option.name }}: {{ option.value }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </td>
                         <td>
                             {# Affiche le prénom/nom de l'enfant si c'est un cours #}
                             {% if detail.productIllustration == 'cours_image.jpg' and detail.childFirstname is defined %}

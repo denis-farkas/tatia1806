@@ -1,134 +1,89 @@
 <?php
 
-
 namespace App\Controller;
 
 use App\Classe\Cart;
-use App\Entity\Product;
+use App\Entity\ProductVariant;
 use App\Entity\Cours;
 use App\Entity\Child;
+use App\Entity\GalaImage;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Annotation\Route;
 
 class CartController extends AbstractController
 {
-    
-    #[Route('/add-to-cart/{id}', name: 'add_to_cart', methods: ['POST'])]
-    public function addToCart($id, Request $request, Cart $cart, EntityManagerInterface $entityManager): Response
+    #[Route('/add-to-cart', name: 'add_to_cart', methods: ['POST'])]
+    public function addToCart(Request $request, Cart $cart, EntityManagerInterface $entityManager): Response
     {
-        
+        $variantId = $request->request->get('variant');
+        $quantity = (int) $request->request->get('quantity', 1);
 
-        $product = $entityManager->getRepository(Product::class)->find($id);
-
-        if (!$product) {
-            
-            throw $this->createNotFoundException('Produit non trouvé.');
+        if (!$variantId) {
+            $this->addFlash('error', 'Veuillez sélectionner une variante.');
+            return $this->redirectToRoute('app_product_by_id', ['id' => $request->get('id')]);
         }
 
-        $quantity = (int)$request->request->get('quantity', 1);
+        $variant = $entityManager->getRepository(ProductVariant::class)->find($variantId);
 
-        
+        if (!$variant) {
+            $this->addFlash('error', 'La variante sélectionnée est introuvable.');
+            return $this->redirectToRoute('app_product_by_id', ['id' => $request->get('id')]);
+        }
 
-        // Vérifier la disponibilité du stock
-        if (!$product->isInStock() || $product->getAvailableQuantity() < $quantity) {
-            
-
+        // Check stock availability
+        if (!$variant->isInStock() || $variant->getAvailableQuantity() < $quantity) {
             $this->addFlash('error', sprintf(
                 'Stock insuffisant pour %s. Disponible : %d',
-                $product->getName(),
-                $product->getAvailableQuantity()
+                $variant->getProduct()->getName(),
+                $variant->getAvailableQuantity()
             ));
-            return $this->redirectToRoute('app_product_by_id', ['id' => $id]);
+            return $this->redirectToRoute('app_product_by_id', ['id' => $variant->getProduct()->getId()]);
         }
 
-        $cart->addProduct($product, $quantity);
-        
-       
+        // Add the variant to the cart
+        $cart->addVariant($variant, $quantity);
 
-        $this->addFlash('success', 'Produit ajouté au panier.');
+        $this->addFlash('success', 'Le produit a été ajouté au panier.');
 
-        return $this->redirectToRoute('app_product');
+        return $this->redirectToRoute('cart');
     }
 
     #[Route('/cart', name: 'cart')]
     public function index(Cart $cart): Response
     {
-        // Récupérer le panier
+        // Retrieve the cart items
         $cartItems = $cart->getCart();
+        $imagesCart = $cart->getImagesCart(); // Retrieve images from the cart
+        $coursCart = $cart->getCoursCart(); // Retrieve cours from the cart
         $totals = $cart->getTotals();
         $totalQuantity = $cart->getTotalQuantity();
 
-        
-
         return $this->render('cart/cart.html.twig', [
             'cart' => $cartItems,
+            'images_cart' => $imagesCart, // Pass images_cart to the template
+            'cours_cart' => $coursCart, // Pass cours_cart to the template
             'totals' => $totals,
-            'totalQuantity' => $totalQuantity
+            'totalQuantity' => $totalQuantity,
         ]);
-    }
-
-    #[Route('/decrease-quantity/{id}', name: 'decrease_quantity')]
-    public function decreaseQuantity($id, Cart $cart, EntityManagerInterface $entityManager): Response
-    {
-        
-
-        $product = $entityManager->getRepository(Product::class)->find($id);
-        
-        if (!$product) {
-            
-            throw $this->createNotFoundException('Produit non trouvé.');
-        }
-        
-        $cart->decreaseQuantity($product);
-        
-        
-        
-        return $this->redirectToRoute('cart');
-    }
-
-    #[Route('/increase-quantity/{id}', name: 'increase_quantity')]
-    public function increaseQuantity($id, Cart $cart, EntityManagerInterface $entityManager): Response
-    {
-        
-
-        $product = $entityManager->getRepository(Product::class)->find($id);
-        
-        if (!$product) {
-           
-            throw $this->createNotFoundException('Produit non trouvé.');
-        }
-        
-        $cart->increaseQuantity($product);
-        
-        
-        
-        return $this->redirectToRoute('cart');
     }
 
     #[Route('/remove-from-cart/{id}', name: 'remove_from_cart')]
     public function removeFromCart($id, Cart $cart, EntityManagerInterface $entityManager): Response
     {
-       
+        $variant = $entityManager->getRepository(ProductVariant::class)->find($id);
 
-        // Récupérer le produit à partir de son ID
-        $product = $entityManager->getRepository(Product::class)->find($id);
-
-        if (!$product) {
-            
-            throw $this->createNotFoundException('Produit non trouvé.');
+        if (!$variant) {
+            throw $this->createNotFoundException('Variant not found.');
         }
 
-        $cart->remove($product);
+        // Pass the ID of the variant to the removeVariant method
+        $cart->removeVariant($variant->getId());
 
-        
-
-        // Ajouter un message flash de succès
         $this->addFlash('success', 'Produit retiré du panier.');
 
-        // Rediriger vers la page panier
         return $this->redirectToRoute('cart');
     }
 
@@ -138,15 +93,13 @@ class CartController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         Cart $cart
-    ): Response 
-    {
-        
+    ): Response {
         $user = $this->getUser();
         if (!$user || !$user instanceof \App\Entity\User) {
             $this->addFlash('danger', 'Vous devez être connecté.');
             return $this->redirectToRoute('app_login');
         }
-        
+
         $cours = $entityManager->getRepository(Cours::class)->find($id);
         if (!$cours) {
             $this->addFlash('danger', 'Cours introuvable.');
@@ -186,6 +139,7 @@ class CartController extends AbstractController
         $redirectTo = $request->get('redirect_to') ?: $this->generateUrl('cart');
         return $this->redirect($redirectTo);
     }
+
     #[Route('/cart/remove-cours/{id}/{child}', name: 'remove_cours_from_cart', methods: ['POST'])]
     public function removeCoursFromCart(
         int $id,
@@ -214,6 +168,62 @@ class CartController extends AbstractController
         $request->getSession()->set('cours_cart', $newCart);
 
         $this->addFlash('success', 'Le cours a été retiré du panier.');
+        return $this->redirectToRoute('cart');
+    }
+
+    #[Route('/cart/add-image/{id}', name: 'add_image_to_cart', methods: ['POST'])]
+    public function addImageToCart(
+        int $id,
+        Request $request,
+        EntityManagerInterface $entityManager,
+        Cart $cart
+    ): Response {
+        $image = $entityManager->getRepository(GalaImage::class)->find($id);
+
+        if (!$image) {
+            $this->addFlash('danger', 'Image introuvable.');
+            return $this->redirectToRoute('app_gala');
+        }
+
+        $quantity = (int) $request->request->get('quantity', 1);
+
+        // Add the image to the images cart
+        $cart->addImage($image, $quantity);
+
+        $this->addFlash('success', sprintf(
+            'L\'image "%s" a été ajoutée au panier.',
+            $image->getFilename()
+        ));
+
+        $referer = $request->headers->get('referer');
+        if ($referer) {
+            return $this->redirect($referer);
+        }
+
+        return $this->redirectToRoute('cart');
+    }
+
+    #[Route('/cart/remove-image/{id}', name: 'remove_image_from_cart', methods: ['POST'])]
+    public function removeImageFromCart(
+        int $id,
+        EntityManagerInterface $entityManager,
+        Cart $cart
+    ): Response {
+        $image = $entityManager->getRepository(GalaImage::class)->find($id);
+
+        if (!$image) {
+            $this->addFlash('danger', 'Image introuvable.');
+            return $this->redirectToRoute('cart');
+        }
+
+        // Remove the image from the images cart
+        $cart->removeImage($image);
+
+        $this->addFlash('success', sprintf(
+            'L\'image "%s" a été retirée du panier.',
+            $image->getFilename()
+        ));
+
         return $this->redirectToRoute('cart');
     }
 }

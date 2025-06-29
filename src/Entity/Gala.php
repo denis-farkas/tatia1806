@@ -10,55 +10,76 @@ class Gala
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $year = null;
+    #[ORM\Column(type: 'string', length: 255)]
+    private ?string $name = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $cours = null;
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $description = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $images = null;
+    #[ORM\Column(type: 'datetime')]
+    private ?\DateTimeInterface $date = null;
 
+    /**
+     * Get the ID of the gala.
+     */
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getYear(): ?string
+    /**
+     * Get the name of the gala.
+     */
+    public function getName(): ?string
     {
-        return $this->year;
+        return $this->name;
     }
 
-    public function setYear(string $year): static
+    /**
+     * Set the name of the gala.
+     */
+    public function setName(string $name): self
     {
-        $this->year = $year;
+        $this->name = $name;
 
         return $this;
     }
 
-    public function getCours(): ?string
+    /**
+     * Get the description of the gala.
+     */
+    public function getDescription(): ?string
     {
-        return $this->cours;
+        return $this->description;
     }
 
-    public function setCours(string $cours): static
+    /**
+     * Set the description of the gala.
+     */
+    public function setDescription(?string $description): self
     {
-        $this->cours = $cours;
+        $this->description = $description;
 
         return $this;
     }
 
-    public function getImages(): ?string
+    /**
+     * Get the date of the gala.
+     */
+    public function getDate(): ?\DateTimeInterface
     {
-        return $this->images;
+        return $this->date;
     }
 
-    public function setImages(string $images): static
+    /**
+     * Set the date of the gala.
+     */
+    public function setDate(\DateTimeInterface $date): self
     {
-        $this->images = $images;
+        $this->date = $date;
 
         return $this;
     }

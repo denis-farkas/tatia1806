@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\OrderDetailRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: OrderDetailRepository::class)]
@@ -34,6 +35,9 @@ class OrderDetail
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $childFirstname = null;
+
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $options = null;
 
     public function getId(): ?int
     {
@@ -121,5 +125,29 @@ class OrderDetail
         $this->childFirstname = $childFirstname;
 
         return $this;
+    }
+
+    public function getOptions(): ?array
+    {
+        return $this->options;
+    }
+
+    public function setOptions(?array $options): static
+    {
+        $this->options = $options;
+        return $this;
+    }
+
+    public function getOptionsAsString(): string
+    {
+        if (empty($this->options)) {
+            return 'Default';
+        }
+
+        return implode(', ', array_map(
+            fn($key, $value) => ucfirst($key) . ': ' . $value,
+            array_keys($this->options),
+            $this->options
+        ));
     }
 }

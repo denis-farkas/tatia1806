@@ -1,0 +1,32 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello GalaController!{% endblock %}
+
+{% block body %}
+<nav aria-label="breadcrumb" class="m-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Liste des Galas</li>
+        </ol>
+    </nav>
+<h1 class="text-center my-4">Liste des Galas</h1>
+
+<!-- Breadcrumb -->
+
+
+<div class="row w-75 mx-auto">
+   
+    {% for gala in galas %}
+        <div class="col-md-4 col-lg-4 col-sm-12 mb-4">
+            <div class="card mb-4">
+                <img src="{{ asset('images/galas/' ~ galaImages[gala.id].filename) }}" class="card-img-top" alt="{{ gala.name }}">
+                <div class="card-body">
+                    <h5 class="card-title">Gala pour l'année {{ gala.name }}</h5>
+                    <p class="card-text">{{ gala.description }}</p>
+                    <a href="{{ path('app_gala_gallery', { id: gala.id }) }}" class="btn bg-gold white">Voir la galerie</a>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

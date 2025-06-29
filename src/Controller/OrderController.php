@@ -21,16 +21,14 @@ class OrderController extends AbstractController
     #[Route('/commande/livraison', name: 'app_order')]
     public function index(): Response
     {
-        
         /** @var User $user */
         $user = $this->getUser();
-       
+
         if (!$user) {
             return $this->redirectToRoute('app_login');
         }
 
         $addresses = $user->getAddresses();
-      
 
         if (!$addresses || count($addresses) == 0) {
             return $this->redirectToRoute('app_account_address_form');
@@ -52,8 +50,10 @@ class OrderController extends AbstractController
         if ($request->getMethod() != 'POST') {
             return $this->redirectToRoute('app_cart');
         }
+
         $coursCart = $request->getSession()->get('cours_cart', []);
         $products = $cart->getCart();
+        $imagesCart = $cart->getImagesCart();
         $totals = $cart->getTotals();
         $totalQuantity = $cart->getTotalQuantity();
 
@@ -81,23 +81,43 @@ class OrderController extends AbstractController
             $order->setCreatedAt(new \DateTimeImmutable());
             $order->setState(1);
             $order->setTotalPrice($totals['total']);
-
             $order->setDelivery($address);
 
-            // Produits physiques
-            foreach ($products as $product) {
+            // Produits physiques (ProductVariant)
+            foreach ($products as $item) {
+                $variant = $item['variant'];
                 $orderDetail = new OrderDetail();
-                $orderDetail->setProductName($product['object']->getName());
-                $orderDetail->setProductIllustration($product['object']->getImage1());
-                $orderDetail->setProductPrice($product['object']->getPrice());
-                $orderDetail->setProductQuantity($product['qty']);
-                $orderDetail->setProductId($product['object']->getId());
+                $orderDetail->setProductName($variant->getProduct()->getName());
+                $orderDetail->setProductIllustration($variant->getProduct()->getImage1());
+                $orderDetail->setProductPrice($variant->getProduct()->getPrice());
+                $orderDetail->setProductQuantity($item['qty']);
+                $orderDetail->setProductId($variant->getId());
+                $orderDetail->setOptions(
+                    $variant->getAttributes()->map(function ($attribute) {
+                        return [
+                            'name' => $attribute->getAttribute()->getName(),
+                            'value' => $attribute->getValue(),
+                        ];
+                    })->toArray()
+                ); // Include dynamic attributes
+                $order->addOrderDetail($orderDetail);
+                $entityManager->persist($orderDetail);
+            }
+
+            // Images (GalaImage)
+            foreach ($imagesCart as $item) {
+                $image = $item['image'];
+                $orderDetail = new OrderDetail();
+                $orderDetail->setProductName($image->getFilename());
+                $orderDetail->setProductIllustration($image->getFilename());
+                $orderDetail->setProductPrice($image->getPrice());
+                $orderDetail->setProductQuantity($item['qty']);
+                $orderDetail->setProductId($image->getId());
                 $order->addOrderDetail($orderDetail);
                 $entityManager->persist($orderDetail);
             }
 
             // Cours (depuis la session)
-            $coursCart = $request->getSession()->get('cours_cart', []);
             foreach ($coursCart as $item) {
                 $orderDetail = new OrderDetail();
                 $orderDetail->setProductName($item['cours']->getName());
@@ -112,11 +132,15 @@ class OrderController extends AbstractController
 
             $entityManager->persist($order);
             $entityManager->flush();
+
+            // Clear the cart after order is placed
+            $cart->reset();
         }
 
         return $this->render('order/summary.html.twig', [
             'choices' => $form->getData(),
             'cart' => $products,
+            'images_cart' => $imagesCart,
             'cours_cart' => $coursCart,
             'order' => $order,
             'totals' => $totals,

@@ -14,7 +14,7 @@ class Stock
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\OneToOne(inversedBy: 'stock', cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
     private ?Product $product = null;
 
@@ -33,6 +33,9 @@ class Stock
     // CORRECTION: Changer le type ici pour correspondre aux méthodes
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeImmutable $updatedAt = null;
+
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $options = null;
 
     public function getId(): ?int
     {
@@ -103,6 +106,30 @@ class Stock
     {
         $this->updatedAt = $updatedAt;
         return $this;
+    }
+
+    public function getOptions(): ?array
+    {
+        return $this->options;
+    }
+
+    public function setOptions(?array $options): static
+    {
+        $this->options = $options;
+        return $this;
+    }
+
+    public function getOptionsAsString(): string
+    {
+        if (empty($this->options)) {
+            return 'Default';
+        }
+
+        return implode(', ', array_map(
+            fn($key, $value) => ucfirst($key) . ': ' . $value,
+            array_keys($this->options),
+            $this->options
+        ));
     }
 
     // Méthodes métier

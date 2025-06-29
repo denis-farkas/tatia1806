@@ -14,23 +14,32 @@ use Symfony\Component\HttpFoundation\Request;
 final class CoursController extends AbstractController
 {
     #[Route('/cours', name: 'app_cours')]
-    public function index(CoursRepository $coursRepository): Response
+    public function index(CoursRepository $coursRepository, EntityManagerInterface $entityManager): Response
     {
         $user = $this->getUser();
-        if (!$user) {
-            return $this->redirectToRoute('app_login');
+        $subscriptions = [];
+
+        if ($user) {
+            // Fetch all UserCours for the logged-in user
+            $userCoursRepository = $entityManager->getRepository(UserCours::class);
+            $userCours = $userCoursRepository->findBy(['user' => $user]);
+
+            // Create an array to track subscription status
+            foreach ($userCours as $uc) {
+                $subscriptions[$uc->getCours()->getId()] = $uc->getFirstname(); // Track who is subscribed
+            }
         }
 
         $cours = $coursRepository->findAll();
 
-        // Regrouper les cours par jour
+        // Regrouper les cours par jour et par type
         $coursParJour = [];
         $coursParType = [];
 
-        foreach ($coursRepository->findAll() as $cours) {
-            $type = $cours->getName(); // exemple : "Eveil", "Initiation", "Classique"
-            $coursParType[$type][] = $cours;
-            $coursParJour[$cours->getDay()][] = $cours;
+        foreach ($cours as $coursItem) {
+            $type = $coursItem->getName(); // exemple : "Eveil", "Initiation", "Classique"
+            $coursParType[$type][] = $coursItem;
+            $coursParJour[$coursItem->getDay()][] = $coursItem;
         }
 
         ksort($coursParType); // trie les types alphabétiquement
@@ -43,6 +52,7 @@ final class CoursController extends AbstractController
             'coursParJour' => $coursParJour,
             'horaires' => $horaires,
             'coursParType' => $coursParType,
+            'subscriptions' => $subscriptions, // Pass subscription info to the template
         ]);
     }
 
@@ -50,7 +60,9 @@ final class CoursController extends AbstractController
     public function ficheCours($id, EntityManagerInterface $entityManager): Response
     {
         $user = $this->getUser();
-        if (!$user) {
+
+        if (!$user || !$user instanceof \App\Entity\User) {
+            $this->addFlash('danger', 'Vous devez être connecté.');
             return $this->redirectToRoute('app_login');
         }
 
@@ -60,10 +72,58 @@ final class CoursController extends AbstractController
             throw $this->createNotFoundException('Cours non trouvé');
         }
 
+        // Fetch all UserCours for the given course
+        $userCoursRepository = $entityManager->getRepository(UserCours::class);
+        $userCours = $userCoursRepository->findBy(['cours' => $cours]);
+
+        // Check if the user or their children are already subscribed
+        $isSubscribed = false;
+        $subscriptionMessage = null;
+        $subscribedChildren = [];
+        $ineligibleChildren = []; // Track children who don't meet age requirements
+
+        foreach ($userCours as $uc) {
+            if ($uc->getUser() === $user) {
+                $isSubscribed = true;
+                $subscriptionMessage = 'Vous êtes déjà inscrit(e) à ce cours.';
+            }
+
+            foreach ($user->getChildren() as $child) {
+                if ($uc->getFirstname() === $child->getFirstname()) {
+                    $subscribedChildren[$child->getId()] = $child->getFirstname();
+                }
+            }
+        }
+
+        // Check age eligibility for each child
+        foreach ($user->getChildren() as $child) {
+            $childAge = $child->getBirthdate()->diff(new \DateTime())->y; // Calculate age in years
+
+
+            if (($cours->getMinAge() !== null && $childAge < $cours->getMinAge()) ||
+                ($cours->getMaxAge() !== null && $childAge > $cours->getMaxAge())) {
+                $ineligibleChildren[$child->getId()] = $child->getFirstname();
+            }
+        }
+
+        
+        $userAge =  18; // Default age for the user, assuming they are an adult
+
+        // Check if the user (adult) is eligible for the course
+        if ($cours->getMaxAge() !== null && $userAge > $cours->getMaxAge()) {
+            // Allow the user to proceed if they are registering a child
+            if (empty($user->getChildren())) {
+                $this->addFlash('danger', 'Ce cours est réservé aux enfants.');
+                return $this->redirectToRoute('app_cours');
+            }
+        }
+
         return $this->render('cours/fiche_cours.html.twig', [
             'cours' => $cours,
+            'isSubscribed' => $isSubscribed,
+            'subscriptionMessage' => $subscriptionMessage,
+            'subscribedChildren' => $subscribedChildren,
+            'ineligibleChildren' => $ineligibleChildren, // Pass ineligible children info
         ]);
     }
-
-    
 }

@@ -22,40 +22,71 @@ class ProductController extends AbstractController
     public function index(ProductRepository $productRepository): Response
     {
         $products = $productRepository->findAll();
-        
-        // Serialize products to pass to React
+
+        // Serialize products and their variants
         $serializedProducts = [];
         foreach ($products as $product) {
+            $variants = [];
+            foreach ($product->getVariants() as $variant) {
+                $variants[] = [
+                    'id' => $variant->getId(),
+                    'attributes' => array_map(function ($attribute) {
+                        return [
+                            'name' => $attribute->getAttribute()->getName(),
+                            'value' => $attribute->getValue(),
+                        ];
+                    }, $variant->getAttributes()->toArray()),
+                    'quantity' => $variant->getQuantity(),
+                    'availableQuantity' => $variant->getAvailableQuantity(),
+                    'isActive' => $variant->getIsActive(),
+                ];
+            }
+
             $serializedProducts[] = [
                 'id' => $product->getId(),
                 'name' => $product->getName(),
                 'description' => $product->getDescription(),
-                'price' => number_format($product->getPrice(), 2, '.', ''), // Format correct
+                'price' => number_format($product->getPrice(), 2, '.', ''), // Use product price
                 'image1' => $product->getImage1(),
                 'createdAt' => $product->getCreatedAt()->format('Y-m-d H:i:s'),
-                // Ajouter les infos de stock
-                'inStock' => $product->isInStock(),
-                'availableQuantity' => $product->getAvailableQuantity(),
-                'isLowStock' => $product->isLowStock(),
+                'variants' => $variants, // Include variants
             ];
         }
-        
+
         return $this->render('product/index.html.twig', [
-            'products' => $serializedProducts
+            'products' => $serializedProducts,
         ]);
     }
 
     #[Route('/product/{id}', name: 'app_product_by_id')]
-    public function ficheProduit($id, EntityManagerInterface $entityManager): Response
+    public function ficheProduit($id): Response
     {
-        $product = $entityManager->getRepository(Product::class)->find($id);
-        
+        $product = $this->entityManager->getRepository(Product::class)->find($id);
+
         if (!$product) {
             throw $this->createNotFoundException('Produit non trouvé');
         }
 
+        // Serialize product variants
+        $variants = [];
+        foreach ($product->getVariants() as $variant) {
+            $variants[] = [
+                'id' => $variant->getId(),
+                'attributes' => array_map(function ($attribute) {
+                    return [
+                        'name' => $attribute->getAttribute()->getName(),
+                        'value' => $attribute->getValue(),
+                    ];
+                }, $variant->getAttributes()->toArray()),
+                'quantity' => $variant->getQuantity(),
+                'availableQuantity' => $variant->getAvailableQuantity(),
+                'isActive' => $variant->getIsActive(),
+            ];
+        }
+
         return $this->render('product/fiche_produit.html.twig', [
             'product' => $product,
+            'variants' => $variants, // Pass variants to the template
         ]);
     }
 }

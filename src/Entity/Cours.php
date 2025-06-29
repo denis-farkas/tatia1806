@@ -19,8 +19,14 @@ class Cours
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $age = null;
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $minAge = null;
+
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $maxAge = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $age = null; // String for display purposes
 
     #[ORM\Column(length: 255)]
     private ?string $schedule = null;
@@ -71,16 +77,55 @@ class Cours
         return $this;
     }
 
+    public function getMinAge(): ?int
+    {
+        return $this->minAge;
+    }
+
+    public function setMinAge(?int $minAge): static
+    {
+        $this->minAge = $minAge;
+        $this->updateAgeString(); // Automatically update $age
+
+        return $this;
+    }
+
+    public function getMaxAge(): ?int
+    {
+        return $this->maxAge;
+    }
+
+    public function setMaxAge(?int $maxAge): static
+    {
+        $this->maxAge = $maxAge;
+        $this->updateAgeString(); // Automatically update $age
+
+        return $this;
+    }
+
     public function getAge(): ?string
     {
         return $this->age;
     }
 
-    public function setAge(string $age): static
+    public function setAge(?string $age): static
     {
         $this->age = $age;
 
         return $this;
+    }
+
+    private function updateAgeString(): void
+    {
+        if ($this->minAge !== null && $this->maxAge !== null) {
+            $this->age = "{$this->minAge}-{$this->maxAge}ans";
+        } elseif ($this->minAge !== null) {
+            $this->age = "{$this->minAge}+ ans";
+        } elseif ($this->maxAge !== null) {
+            $this->age = "Jusqu'à {$this->maxAge} ans";
+        } else {
+            $this->age = null;
+        }
     }
 
     public function getSchedule(): ?string
